@@ -3,7 +3,7 @@ enabled = true
 port = 80,443
 filter = bitwarden-admin
 action = iptables-allports[chain=FORWARD]
-logpath = /home/ec2-user/bitwarden/bitwarden.log
+logpath = /home/ec2-user/bitwarden/bitwarden-data/bitwarden.log
 maxretry = 3
 bantime = 14400
 findtime = 14400

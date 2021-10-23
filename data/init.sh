@@ -16,9 +16,6 @@ aws ec2 attach-network-interface \
 # Wait for network initialization
 sleep 10
 
-# Switch the default route to eth1
-ip route del default dev eth0
-
 # Waiting for network connection
 curl --retry 10 http://www.example.com
 
@@ -35,7 +32,8 @@ aws ec2 attach-volume \
 sleep 10
 
 # Mount the EBS volume
-mount /dev/xvdf /mnt/
+mkdir -p /home/ec2-user/bitwarden
+mount /dev/xvdf /home/ec2-user/bitwarden
 
 # Install docker
 yum update
@@ -44,15 +42,15 @@ usermod -a -G docker ec2-user
 systemctl start docker.service
 
 # Install docker-compose
-curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+curl -L "https://github.com/docker/compose/releases/download/v2.0.1/docker-compose-linux-x86_64" -o /usr/local/bin/docker-compose
 chmod +x /usr/local/bin/docker-compose
 
 # Configure docker-compose
 yum install -y jq
-mkdir -p /home/ec2-user/{compose,letsencrypt,bitwarden}
-touch -f /home/ec2-user/bitwarden/bitwarden.log
-aws secretsmanager get-secret-value --secret-id "${bitwarden_config_secret_arn}" | jq -r '.SecretString' > /home/ec2-user/compose/.env
-aws s3 cp "s3://${resources_bucket}/${bitwarden_compose_key}" /home/ec2-user/compose/docker-compose.yml
+mkdir -p /home/ec2-user/bitwarden/{compose,letsencrypt,bitwarden-data,mysql}
+touch -f /home/ec2-user/bitwarden/bitwarden-data/bitwarden.log
+aws secretsmanager get-secret-value --secret-id "${bitwarden_config_secret_arn}" | jq -r '.SecretString' > /home/ec2-user/bitwarden/compose/.env
+aws s3 cp "s3://${resources_bucket}/${bitwarden_compose_key}" /home/ec2-user/bitwarden/compose/docker-compose.yml
 
 # Install fail2ban
 amazon-linux-extras install epel -y
@@ -69,4 +67,7 @@ systemctl reload fail2ban
 aws s3 cp "s3://${resources_bucket}/${logrotate_key}" /etc/logrotate.d/bitwarden
 
 # Fix permissions
-chown ec2-user:ec2-user -R /home/ec2-user/{compose,letsencrypt,bitwarden}
+chown ec2-user:ec2-user -R /home/ec2-user/bitwarden
+
+# Switch the default route to eth1
+ip route del default dev eth0
