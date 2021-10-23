@@ -27,7 +27,8 @@ No modules.
 | [aws_iam_role.this](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/iam_role) | resource |
 | [aws_iam_role_policy.ebs](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/iam_role_policy) | resource |
 | [aws_iam_role_policy.eni](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/iam_role_policy) | resource |
-| [aws_iam_role_policy.rolepolicy](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/iam_role_policy) | resource |
+| [aws_iam_role_policy.s3](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/iam_role_policy) | resource |
+| [aws_iam_role_policy.sm](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/iam_role_policy) | resource |
 | [aws_launch_template.this](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/launch_template) | resource |
 | [aws_network_interface.this](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/network_interface) | resource |
 | [aws_route53_record.this](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/route53_record) | resource |
@@ -42,9 +43,9 @@ No modules.
 | [aws_s3_bucket_policy.policy](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/s3_bucket_policy) | resource |
 | [aws_s3_bucket_public_access_block.bucket](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/s3_bucket_public_access_block) | resource |
 | [aws_s3_bucket_public_access_block.resources](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/s3_bucket_public_access_block) | resource |
+| [aws_secretsmanager_secret.config](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/secretsmanager_secret) | resource |
+| [aws_secretsmanager_secret_version.config_value](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/secretsmanager_secret_version) | resource |
 | [aws_security_group.this](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/security_group) | resource |
-| [aws_security_group_rule.egress](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/security_group_rule) | resource |
-| [aws_security_group_rule.nat_ssh](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/security_group_rule) | resource |
 | [aws_ami.this](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/data-sources/ami) | data source |
 | [aws_iam_policy_document.s3policy](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/data-sources/iam_policy_document) | data source |
 | [aws_route53_zone.this](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/data-sources/route53_zone) | data source |
@@ -59,6 +60,7 @@ No modules.
 | <a name="input_domain"></a> [domain](#input\_domain) | The domain name for the Bitwarden instance | `string` | n/a | yes |
 | <a name="input_name"></a> [name](#input\_name) | Name to be used  as identifier | `string` | `"bitwarden"` | no |
 | <a name="input_route53_zone"></a> [route53\_zone](#input\_route53\_zone) | The zone in which the DNS record will be created | `string` | n/a | yes |
+| <a name="input_ssh_cidr"></a> [ssh\_cidr](#input\_ssh\_cidr) | The IP ranges from where the SSH connections will be allowed | `list(any)` | `[]` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Tags applied to resources created with this module | `map(any)` | `{}` | no |
 
 ## Outputs

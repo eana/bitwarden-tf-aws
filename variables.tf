@@ -25,3 +25,9 @@ variable "route53_zone" {
   description = "The zone in which the DNS record will be created"
   type        = string
 }
+
+variable "ssh_cidr" {
+  description = "The IP ranges from where the SSH connections will be allowed"
+  type        = list(any)
+  default     = []
+}

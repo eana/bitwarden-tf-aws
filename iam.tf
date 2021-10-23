@@ -81,10 +81,10 @@ resource "aws_iam_role_policy" "ebs" {
 EOF
 }
 
-resource "aws_iam_role_policy" "rolepolicy" {
-  name_prefix = "bitwarden"
-  role        = aws_iam_role.this.id
-  policy      = <<-EOF
+resource "aws_iam_role_policy" "s3" {
+  name   = "${var.name}-s3"
+  role   = aws_iam_role.this.id
+  policy = <<-EOF
   {
     "Version": "2012-10-17",
     "Statement": [
@@ -121,6 +121,34 @@ resource "aws_iam_role_policy" "rolepolicy" {
         ],
         "Effect": "Allow",
         "Resource": "${aws_s3_bucket.resources.arn}/*"
+      },
+      {
+        "Action": [
+          "secretsmanager:GetSecretValue",
+          "secretsemanager:DescribeSecret"
+        ],
+        "Effect": "Allow",
+        "Resource": "${aws_secretsmanager_secret.config.arn}"
+      }
+    ]
+  }
+  EOF
+}
+
+resource "aws_iam_role_policy" "sm" {
+  name   = "${var.name}-sm"
+  role   = aws_iam_role.this.id
+  policy = <<-EOF
+  {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Action": [
+          "secretsmanager:GetSecretValue",
+          "secretsemanager:DescribeSecret"
+        ],
+        "Effect": "Allow",
+        "Resource": "${aws_secretsmanager_secret.config.arn}"
       }
     ]
   }

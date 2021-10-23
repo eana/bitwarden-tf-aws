@@ -1,51 +1,3 @@
-resource "aws_security_group" "this" {
-  name        = var.name
-  vpc_id      = data.aws_vpc.this.id
-  description = "Security group for EC2 instance ${var.name}"
-  tags        = local.default_tags
-}
-
-resource "aws_security_group_rule" "egress" {
-  security_group_id = aws_security_group.this.id
-  type              = "egress"
-  cidr_blocks       = ["0.0.0.0/0"] # tfsec:ignore:AWS007
-  from_port         = 0
-  to_port           = 65535
-  protocol          = "tcp"
-  description       = "Allow all outbound traffic"
-}
-
-resource "aws_security_group_rule" "nat_ssh" {
-  security_group_id = aws_security_group.this.id
-  type              = "ingress"
-  cidr_blocks       = ["85.230.207.252/32", "91.206.78.234/32", "90.224.39.53/32"]
-  from_port         = 22
-  to_port           = 22
-  protocol          = "tcp"
-  description       = "Allow incoming SSH connections only from certain IPs."
-}
-
-resource "aws_network_interface" "this" {
-  security_groups   = [aws_security_group.this.id]
-  subnet_id         = data.aws_subnets.this.ids[0]
-  source_dest_check = false
-  description       = "ENI for EC2 instance ${var.name}"
-  tags              = local.default_tags
-}
-
-resource "aws_eip" "this" {
-  network_interface = aws_network_interface.this.id
-  tags              = local.default_tags
-}
-
-resource "aws_route53_record" "this" {
-  zone_id = data.aws_route53_zone.this.zone_id
-  name    = var.domain
-  type    = "A"
-  ttl     = "300"
-  records = [aws_eip.this.public_ip]
-}
-
 resource "aws_launch_template" "this" {
   name     = var.name
   image_id = data.aws_ami.this.id
@@ -63,16 +15,17 @@ resource "aws_launch_template" "this" {
 
   user_data = base64encode(
     templatefile("${path.module}/data/init.sh", {
-      eni_id                    = aws_network_interface.this.id
-      volume_id                 = aws_ebs_volume.this.id
-      bucket                    = aws_s3_bucket.bucket.id
-      resources_bucket          = aws_s3_bucket.resources.id
-      bitwarden_compose_key     = aws_s3_bucket_object.compose.key
-      logrotate_key             = aws_s3_bucket_object.logrotate.key
-      fail2ban_filter_key       = aws_s3_bucket_object.fail2ban_filter.key
-      fail2ban_jail_key         = aws_s3_bucket_object.fail2ban_jail.key
-      admin_fail2ban_filter_key = aws_s3_bucket_object.admin_fail2ban_filter.key
-      admin_fail2ban_jail_key   = aws_s3_bucket_object.admin_fail2ban_jail.key
+      eni_id                      = aws_network_interface.this.id
+      volume_id                   = aws_ebs_volume.this.id
+      bucket                      = aws_s3_bucket.bucket.id
+      resources_bucket            = aws_s3_bucket.resources.id
+      bitwarden_config_secret_arn = aws_secretsmanager_secret.config.arn
+      bitwarden_compose_key       = aws_s3_bucket_object.compose.key
+      logrotate_key               = aws_s3_bucket_object.logrotate.key
+      fail2ban_filter_key         = aws_s3_bucket_object.fail2ban_filter.key
+      fail2ban_jail_key           = aws_s3_bucket_object.fail2ban_jail.key
+      admin_fail2ban_filter_key   = aws_s3_bucket_object.admin_fail2ban_filter.key
+      admin_fail2ban_jail_key     = aws_s3_bucket_object.admin_fail2ban_jail.key
     })
   )
 
