@@ -37,3 +37,8 @@ data "aws_subnets" "this" {
     values = ["${terraform.workspace}-vpc-public-${local.az}"]
   }
 }
+
+data "aws_route53_zone" "this" {
+  name         = var.route53_zone
+  private_zone = false
+}

@@ -15,3 +15,13 @@ variable "bucket_version_expiration_days" {
   type        = number
   default     = 30
 }
+
+variable "domain" {
+  description = "The domain name for the Bitwarden instance"
+  type        = string
+}
+
+variable "route53_zone" {
+  description = "The zone in which the DNS record will be created"
+  type        = string
+}

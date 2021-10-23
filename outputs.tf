@@ -27,3 +27,8 @@ output "s3_resources" {
   description = "The S3 bucket where all the resource files will be stored"
   value       = aws_s3_bucket.resources.id
 }
+
+output "url" {
+  description = "The URL where the Bitwarden Instance can be accessed"
+  value       = "https://${aws_route53_record.this.name}"
+}

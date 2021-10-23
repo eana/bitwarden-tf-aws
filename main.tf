@@ -38,6 +38,14 @@ resource "aws_eip" "this" {
   tags              = local.default_tags
 }
 
+resource "aws_route53_record" "this" {
+  zone_id = data.aws_route53_zone.this.zone_id
+  name    = var.domain
+  type    = "A"
+  ttl     = "300"
+  records = [aws_eip.this.public_ip]
+}
+
 resource "aws_launch_template" "this" {
   name     = var.name
   image_id = data.aws_ami.this.id
