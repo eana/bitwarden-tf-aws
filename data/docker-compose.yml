@@ -2,7 +2,7 @@ version: '3.5'
 
 services:
   dockerproxy:
-    image: tecnativa/docker-socket-proxy
+    image: tecnativa/docker-socket-proxy:0.1.1
     container_name: dockerproxy
     ports:
       - 2375
@@ -34,19 +34,33 @@ services:
       - "80:8080"
       - "443:8443"
     volumes:
-      - "/home/ec2-user/letsencrypt:/letsencrypt"
+      - "/home/ec2-user/bitwarden/letsencrypt:/letsencrypt"
     networks:
       - default
       - internal
     depends_on:
       - dockerproxy
     restart: unless-stopped
+  mysql:
+    image: mariadb:10.6.4
+    container_name: mysql
+    user: 1000:1000
+    restart: unless-stopped
+    networks:
+      - default
+    volumes:
+      - "/home/ec2-user/bitwarden/mysql:/var/lib/mysql"
+    environment:
+      MARIADB_DATABASE: "bitwarden"
+      MARIADB_USER: "${db_user}"
+      MARIADB_PASSWORD: "${db_user_password}"
+      MARIADB_ROOT_PASSWORD: "${db_root_password}"
   bitwarden:
-    image: "vaultwarden/server"
+    image: vaultwarden/server:1.22.2
     container_name: "bitwarden"
     user: 1000:1000
     volumes:
-      - "/home/ec2-user/bitwarden:/data"
+      - "/home/ec2-user/bitwarden/bitwarden-data:/data"
     networks:
       - default
     environment:
@@ -62,6 +76,7 @@ services:
       SMTP_FROM: "bitwarden@${domain}"
       SMTP_USERNAME: "${smtp_username}"
       SMTP_PASSWORD: "${smtp_password}"
+      DATABASE_URL: 'mysql://${db_user}:${db_user_password}@mysql/bitwarden'
     labels:
       - "traefik.enable=true"
       - "traefik.http.middlewares.redirect-https.redirectScheme.scheme=https"
@@ -87,6 +102,7 @@ services:
       - "traefik.http.services.bitwarden-websocket.loadbalancer.server.port=3012"
     depends_on:
       - traefik
+      - mysql
     restart: unless-stopped
 networks:
   default:
