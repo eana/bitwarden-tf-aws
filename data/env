@@ -1,13 +1,16 @@
-acme_email="${acme_email}"
-signups_allowed="${signups_allowed}"
-domain="${domain}"
-smtp_host="${smtp_host}"
-smtp_port="${smtp_port}"
-smtp_ssl="${smtp_ssl}"
-smtp_username="${smtp_username}"
+acme_email=${acme_email}
+signups_allowed=${signups_allowed}
+domain=${domain}
+smtp_host=${smtp_host}
+smtp_port=${smtp_port}
+smtp_ssl=${smtp_ssl}
+smtp_username=${smtp_username}
 smtp_password="${smtp_password}"
 %{ if enable_admin_page ~}
-admin_token="${admin_token}"
+admin_token=${admin_token}
 %{ endif ~}
 backup_schedule="${backup_schedule}"
-bucket="${bucket}"
+bucket=${bucket}
+db_user=${db_user}
+db_user_password=${db_user_password}
+db_root_password=${db_root_password}

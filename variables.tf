@@ -31,3 +31,9 @@ variable "ssh_cidr" {
   type        = list(any)
   default     = []
 }
+
+variable "enable_admin_page" {
+  description = "If set to `true` the Bitwarden System Administrator Portal will be enabled"
+  type        = bool
+  default     = false
+}

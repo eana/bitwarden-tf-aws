@@ -16,10 +16,13 @@ resource "aws_secretsmanager_secret_version" "config_value" {
     smtp_ssl          = true
     smtp_username     = "username@example.com"
     smtp_password     = "superstrongpassword"
-    enable_admin_page = true
+    enable_admin_page = var.enable_admin_page
     # openssl rand -base64 48
-    admin_token     = "0YakKKYV01Qyz2Y3ynrJVYhw4fy1HtH+oCyVK8k3LhvnpawvkmUT/LZAibYJp3Eq"
-    backup_schedule = "0 9 * * *"
-    bucket          = aws_s3_bucket.bucket.id
+    admin_token      = "0YakKKYV01Qyz2Y3ynrJVYhw4fy1HtH+oCyVK8k3LhvnpawvkmUT/LZAibYJp3Eq"
+    backup_schedule  = "0 9 * * *"
+    bucket           = aws_s3_bucket.bucket.id
+    db_user          = "db-user-name"
+    db_user_password = "StrongDatabasePassword"
+    db_root_password = "StrongDatabaseRootPassword"
   })
 }
