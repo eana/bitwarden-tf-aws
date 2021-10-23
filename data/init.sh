@@ -41,7 +41,6 @@ chmod +x /usr/local/bin/docker-compose
 # Configure docker-compose
 mkdir -vp /home/ec2-user/{compose,letsencrypt,bitwarden}
 touch -f /home/ec2-user/bitwarden/bitwarden.log
-chown ec2-user:ec2-user /home/ec2-user/{compose,letsencrypt,bitwarden}
 aws s3 cp s3://${resources_bucket}/${bitwarden_compose_key} /home/ec2-user/compose/docker-compose.yml
 
 # Install fail2ban
@@ -55,5 +54,8 @@ aws s3 cp s3://${resources_bucket}/${admin_fail2ban_filter_key} /etc/fail2ban/fi
 aws s3 cp s3://${resources_bucket}/${admin_fail2ban_jail_key} /etc/fail2ban/jail.d/bitwarden-admin.local
 systemctl reload fail2ban
 
-# logrotate
+# Logrotate
 aws s3 cp s3://${resources_bucket}/${logrotate_key} /etc/logrotate.d/bitwarden
+
+# Fix permissions
+chown ec2-user:ec2-user /home/ec2-user/{compose,letsencrypt,bitwarden}
