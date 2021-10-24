@@ -53,8 +53,8 @@ rm -f /tmp/sops-3.7.1-1.x86_64.rpm
 
 # Get the secrets
 export SOPS_KMS_ARN="${kms_key_arn}"
-aws s3 cp "s3://${resources_bucket}/${bitwarden_env_key}" /home/ec2-user/bitwarden/compose/.env
-sops -d -i /home/ec2-user/bitwarden/compose/.env
+aws s3 cp "s3://${resources_bucket}/${bitwarden_env_key}" /home/ec2-user/bitwarden/compose/env.enc
+sops -d /home/ec2-user/bitwarden/compose/env.enc > /home/ec2-user/bitwarden/compose/.env
 
 # Configure docker-compose
 yum install -y jq
