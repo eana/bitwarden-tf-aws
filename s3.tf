@@ -70,6 +70,13 @@ resource "aws_s3_bucket_object" "backup" {
   })
   server_side_encryption = "AES256"
 }
+resource "aws_s3_bucket_object" "AWS_SpotTerminationNotifier" {
+  bucket                 = aws_s3_bucket.resources.id
+  key                    = "bitwarden-AWS_SpotTerminationNotifier.sh"
+  content                = file("data/AWS_SpotTerminationNotifier.sh")
+  server_side_encryption = "AES256"
+}
+
 resource "aws_s3_bucket_object" "env" {
   bucket                 = aws_s3_bucket.resources.id
   key                    = "bitwarden-env"

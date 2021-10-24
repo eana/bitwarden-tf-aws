@@ -35,6 +35,7 @@ No modules.
 | [aws_route53_record.this](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/route53_record) | resource |
 | [aws_s3_bucket.bucket](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/s3_bucket) | resource |
 | [aws_s3_bucket.resources](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/s3_bucket) | resource |
+| [aws_s3_bucket_object.AWS_SpotTerminationNotifier](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/s3_bucket_object) | resource |
 | [aws_s3_bucket_object.admin_fail2ban_filter](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/s3_bucket_object) | resource |
 | [aws_s3_bucket_object.admin_fail2ban_jail](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/s3_bucket_object) | resource |
 | [aws_s3_bucket_object.backup](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/s3_bucket_object) | resource |

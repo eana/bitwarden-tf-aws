@@ -62,14 +62,15 @@ mkdir -p /home/ec2-user/bitwarden/{compose,letsencrypt,bitwarden-data,mysql,scri
 touch -f /home/ec2-user/bitwarden/bitwarden-data/bitwarden.log
 aws s3 cp "s3://${resources_bucket}/${bitwarden_compose_key}" /home/ec2-user/bitwarden/compose/docker-compose.yml
 
-# backups
+# Backups
 aws s3 cp "s3://${resources_bucket}/${backup_script_key}" /home/ec2-user/bitwarden/scripts/backup.sh
 chmod a+x /home/ec2-user/bitwarden/scripts/backup.sh
 cat >> /etc/cron.d/bitwarden-backup << 'EOF'
 ${backup_schedule} root /home/ec2-user/bitwarden/scripts/backup.sh
 EOF
 
-# restore
+# The restore script
+# To be added later
 
 # Install fail2ban
 amazon-linux-extras install epel -y
@@ -84,6 +85,11 @@ systemctl reload fail2ban
 
 # Logrotate
 aws s3 cp "s3://${resources_bucket}/${logrotate_key}" /etc/logrotate.d/bitwarden
+
+# Gracefully shutdown the app if the instance is scheduled for termination
+aws s3 cp "s3://${resources_bucket}/${AWS_SpotTerminationNotifier_script_key}" /home/ec2-user/bitwarden/scripts/AWS_SpotTerminationNotifier.sh
+chmod a+x /home/ec2-user/bitwarden/scripts/AWS_SpotTerminationNotifier
+setsid /home/ec2-user/bitwarden/scripts/AWS_SpotTerminationNotifier.sh
 
 # Fix permissions
 chown ec2-user:ec2-user -R /home/ec2-user/bitwarden/{compose,scripts}
