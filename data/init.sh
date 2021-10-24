@@ -46,9 +46,15 @@ systemctl start docker.service
 curl -L "https://github.com/docker/compose/releases/download/v2.0.1/docker-compose-linux-x86_64" -o /usr/local/bin/docker-compose
 chmod +x /usr/local/bin/docker-compose
 
+# Install mozilla sops
+curl -L "https://github.com/mozilla/sops/releases/download/v3.7.1/sops-3.7.1-1.x86_64.rpm" -o /tmp/sops-3.7.1-1.x86_64.rpm
+rpm -i /tmp/sops-3.7.1-1.x86_64.rpm
+rm -f /tmp/sops-3.7.1-1.x86_64.rpm
+
 # Get the secrets
 export SOPS_KMS_ARN="${kms_key_arn}"
-aws s3 cp "s3://${resources_bucket}/${bitwarden_env_key}" /home/ec2-user/bitwarden/compose/env.enc
+aws s3 cp "s3://${resources_bucket}/${bitwarden_env_key}" /home/ec2-user/bitwarden/compose/env
+sops -d -i /home/ec2-user/bitwarden/compose/env
 
 # Configure docker-compose
 yum install -y jq
@@ -71,7 +77,7 @@ systemctl reload fail2ban
 aws s3 cp "s3://${resources_bucket}/${logrotate_key}" /etc/logrotate.d/bitwarden
 
 # Fix permissions
-chown ec2-user:ec2-user -R /home/ec2-user/bitwarden
+chown ec2-user:ec2-user -vR /home/ec2-user/bitwarden
 
 # Switch the default route to eth1
 ip route del default dev eth0
