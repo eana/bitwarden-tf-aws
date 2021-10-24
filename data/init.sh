@@ -72,6 +72,14 @@ EOF
 # The restore script
 # To be added later
 
+# Pull all the docker images
+docker-compose -f /home/ec2-user/bitwarden/compose/docker-compose.yml pull
+
+# Start bitwarden
+echo "Starting bitwarden in 2 minutes"
+sleep 120 # wait 2 minutes for other resources to come up
+docker-compose -f /home/ec2-user/bitwarden/compose/docker-compose.yml up -d
+
 # Install fail2ban
 amazon-linux-extras install epel -y
 yum -y install fail2ban
@@ -88,7 +96,7 @@ aws s3 cp "s3://${resources_bucket}/${logrotate_key}" /etc/logrotate.d/bitwarden
 
 # Gracefully shutdown the app if the instance is scheduled for termination
 aws s3 cp "s3://${resources_bucket}/${AWS_SpotTerminationNotifier_script_key}" /home/ec2-user/bitwarden/scripts/AWS_SpotTerminationNotifier.sh
-chmod a+x /home/ec2-user/bitwarden/scripts/AWS_SpotTerminationNotifier
+chmod a+x /home/ec2-user/bitwarden/scripts/AWS_SpotTerminationNotifier.sh
 setsid /home/ec2-user/bitwarden/scripts/AWS_SpotTerminationNotifier.sh
 
 # Fix permissions
