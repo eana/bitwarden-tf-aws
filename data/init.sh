@@ -97,7 +97,7 @@ aws s3 cp "s3://${resources_bucket}/${logrotate_key}" /etc/logrotate.d/bitwarden
 # Gracefully shutdown the app if the instance is scheduled for termination
 aws s3 cp "s3://${resources_bucket}/${AWS_SpotTerminationNotifier_script_key}" /home/ec2-user/bitwarden/scripts/AWS_SpotTerminationNotifier.sh
 chmod a+x /home/ec2-user/bitwarden/scripts/AWS_SpotTerminationNotifier.sh
-setsid /home/ec2-user/bitwarden/scripts/AWS_SpotTerminationNotifier.sh
+screen -dm -S AWS_SpotTerminationNotifier /home/ec2-user/bitwarden/scripts/AWS_SpotTerminationNotifier.sh
 
 # Fix permissions
 chown ec2-user:ec2-user -R /home/ec2-user/bitwarden/{compose,scripts}
