@@ -5,12 +5,14 @@
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | = 1.0.9 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | = 3.63.0 |
+| <a name="requirement_local"></a> [local](#requirement\_local) | = 2.1.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
 | <a name="provider_aws"></a> [aws](#provider\_aws) | = 3.63.0 |
+| <a name="provider_local"></a> [local](#provider\_local) | = 2.1.0 |
 
 ## Modules
 
@@ -28,7 +30,6 @@ No modules.
 | [aws_iam_role_policy.ebs](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/iam_role_policy) | resource |
 | [aws_iam_role_policy.eni](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/iam_role_policy) | resource |
 | [aws_iam_role_policy.s3](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/iam_role_policy) | resource |
-| [aws_iam_role_policy.sm](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/iam_role_policy) | resource |
 | [aws_launch_template.this](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/launch_template) | resource |
 | [aws_network_interface.this](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/network_interface) | resource |
 | [aws_route53_record.this](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/route53_record) | resource |
@@ -37,20 +38,21 @@ No modules.
 | [aws_s3_bucket_object.admin_fail2ban_filter](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/s3_bucket_object) | resource |
 | [aws_s3_bucket_object.admin_fail2ban_jail](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/s3_bucket_object) | resource |
 | [aws_s3_bucket_object.compose](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/s3_bucket_object) | resource |
+| [aws_s3_bucket_object.env](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/s3_bucket_object) | resource |
 | [aws_s3_bucket_object.fail2ban_filter](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/s3_bucket_object) | resource |
 | [aws_s3_bucket_object.fail2ban_jail](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/s3_bucket_object) | resource |
 | [aws_s3_bucket_object.logrotate](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/s3_bucket_object) | resource |
 | [aws_s3_bucket_policy.policy](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/s3_bucket_policy) | resource |
 | [aws_s3_bucket_public_access_block.bucket](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/s3_bucket_public_access_block) | resource |
 | [aws_s3_bucket_public_access_block.resources](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/s3_bucket_public_access_block) | resource |
-| [aws_secretsmanager_secret.config](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/secretsmanager_secret) | resource |
-| [aws_secretsmanager_secret_version.config_value](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/secretsmanager_secret_version) | resource |
 | [aws_security_group.this](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/resources/security_group) | resource |
 | [aws_ami.this](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/data-sources/ami) | data source |
 | [aws_iam_policy_document.s3policy](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/data-sources/iam_policy_document) | data source |
+| [aws_kms_key.this](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/data-sources/kms_key) | data source |
 | [aws_route53_zone.this](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/data-sources/route53_zone) | data source |
 | [aws_subnets.this](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/data-sources/subnets) | data source |
 | [aws_vpc.this](https://registry.terraform.io/providers/hashicorp/aws/3.63.0/docs/data-sources/vpc) | data source |
+| [local_file.this](https://registry.terraform.io/providers/hashicorp/local/2.1.0/docs/data-sources/file) | data source |
 
 ## Inputs
 
@@ -58,7 +60,7 @@ No modules.
 |------|-------------|------|---------|:--------:|
 | <a name="input_bucket_version_expiration_days"></a> [bucket\_version\_expiration\_days](#input\_bucket\_version\_expiration\_days) | Specifies when noncurrent object versions expire | `number` | `30` | no |
 | <a name="input_domain"></a> [domain](#input\_domain) | The domain name for the Bitwarden instance | `string` | n/a | yes |
-| <a name="input_enable_admin_page"></a> [enable\_admin\_page](#input\_enable\_admin\_page) | If set to `true` the Bitwarden System Administrator Portal will be enabled | `bool` | `false` | no |
+| <a name="input_kms_key_alias"></a> [kms\_key\_alias](#input\_kms\_key\_alias) | The alias for the KMS customer master key which the data/env.enc file was encrypted with. | `string` | `"alias/bitwarden-sops-encryption-key-prod"` | no |
 | <a name="input_name"></a> [name](#input\_name) | Name to be used  as identifier | `string` | `"bitwarden"` | no |
 | <a name="input_route53_zone"></a> [route53\_zone](#input\_route53\_zone) | The zone in which the DNS record will be created | `string` | n/a | yes |
 | <a name="input_ssh_cidr"></a> [ssh\_cidr](#input\_ssh\_cidr) | The IP ranges from where the SSH connections will be allowed | `list(any)` | `[]` | no |

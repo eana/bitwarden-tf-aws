@@ -15,17 +15,18 @@ resource "aws_launch_template" "this" {
 
   user_data = base64encode(
     templatefile("${path.module}/data/init.sh", {
-      eni_id                      = aws_network_interface.this.id
-      volume_id                   = aws_ebs_volume.this.id
-      bucket                      = aws_s3_bucket.bucket.id
-      resources_bucket            = aws_s3_bucket.resources.id
-      bitwarden_config_secret_arn = aws_secretsmanager_secret.config.arn
-      bitwarden_compose_key       = aws_s3_bucket_object.compose.key
-      logrotate_key               = aws_s3_bucket_object.logrotate.key
-      fail2ban_filter_key         = aws_s3_bucket_object.fail2ban_filter.key
-      fail2ban_jail_key           = aws_s3_bucket_object.fail2ban_jail.key
-      admin_fail2ban_filter_key   = aws_s3_bucket_object.admin_fail2ban_filter.key
-      admin_fail2ban_jail_key     = aws_s3_bucket_object.admin_fail2ban_jail.key
+      eni_id                    = aws_network_interface.this.id
+      volume_id                 = aws_ebs_volume.this.id
+      bucket                    = aws_s3_bucket.bucket.id
+      resources_bucket          = aws_s3_bucket.resources.id
+      bitwarden_compose_key     = aws_s3_bucket_object.compose.key
+      bitwarden_env_key         = aws_s3_bucket_object.env.key
+      logrotate_key             = aws_s3_bucket_object.logrotate.key
+      fail2ban_filter_key       = aws_s3_bucket_object.fail2ban_filter.key
+      fail2ban_jail_key         = aws_s3_bucket_object.fail2ban_jail.key
+      admin_fail2ban_filter_key = aws_s3_bucket_object.admin_fail2ban_filter.key
+      admin_fail2ban_jail_key   = aws_s3_bucket_object.admin_fail2ban_jail.key
+      kms_key_arn               = data.aws_kms_key.this.arn
     })
   )
 

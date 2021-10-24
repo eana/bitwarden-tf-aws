@@ -33,6 +33,7 @@ sleep 10
 
 # Mount the EBS volume
 mkdir -p /home/ec2-user/bitwarden
+# TODO: check if the partition is formatted or not (lsblk -f)
 mount /dev/xvdf /home/ec2-user/bitwarden
 
 # Install docker
@@ -45,11 +46,14 @@ systemctl start docker.service
 curl -L "https://github.com/docker/compose/releases/download/v2.0.1/docker-compose-linux-x86_64" -o /usr/local/bin/docker-compose
 chmod +x /usr/local/bin/docker-compose
 
+# Get the secrets
+export SOPS_KMS_ARN="${kms_key_arn}"
+aws s3 cp "s3://${resources_bucket}/${bitwarden_env_key}" /home/ec2-user/bitwarden/compose/env.enc
+
 # Configure docker-compose
 yum install -y jq
 mkdir -p /home/ec2-user/bitwarden/{compose,letsencrypt,bitwarden-data,mysql}
 touch -f /home/ec2-user/bitwarden/bitwarden-data/bitwarden.log
-aws secretsmanager get-secret-value --secret-id "${bitwarden_config_secret_arn}" | jq -r '.SecretString' > /home/ec2-user/bitwarden/compose/.env
 aws s3 cp "s3://${resources_bucket}/${bitwarden_compose_key}" /home/ec2-user/bitwarden/compose/docker-compose.yml
 
 # Install fail2ban

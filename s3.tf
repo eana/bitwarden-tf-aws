@@ -62,6 +62,13 @@ resource "aws_s3_bucket_object" "compose" {
   server_side_encryption = "AES256"
 }
 
+resource "aws_s3_bucket_object" "env" {
+  bucket                 = aws_s3_bucket.resources.id
+  key                    = "bitwarden-env"
+  content                = replace(data.local_file.this.content, "KMS_KEY_ARN", data.aws_kms_key.this.arn)
+  server_side_encryption = "AES256"
+}
+
 resource "aws_s3_bucket_object" "logrotate" {
   bucket                 = aws_s3_bucket.resources.id
   key                    = "bitwarden-logrotate"

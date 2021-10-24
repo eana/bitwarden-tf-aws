@@ -42,3 +42,11 @@ data "aws_route53_zone" "this" {
   name         = var.route53_zone
   private_zone = false
 }
+
+data "aws_kms_key" "this" {
+  key_id = var.kms_key_alias
+}
+
+data "local_file" "this" {
+  filename = "${path.module}/data/env.enc"
+}

@@ -32,8 +32,7 @@ variable "ssh_cidr" {
   default     = []
 }
 
-variable "enable_admin_page" {
-  description = "If set to `true` the Bitwarden System Administrator Portal will be enabled"
-  type        = bool
-  default     = false
+variable "kms_key_alias" {
+  description = "The alias for the KMS customer master key which the data/env.enc file was encrypted with."
+  default     = "alias/bitwarden-sops-encryption-key-prod"
 }
