@@ -62,6 +62,14 @@ resource "aws_s3_bucket_object" "compose" {
   server_side_encryption = "AES256"
 }
 
+resource "aws_s3_bucket_object" "backup" {
+  bucket = aws_s3_bucket.resources.id
+  key    = "bitwarden-backup.sh"
+  content = templatefile("${path.module}/data/backup.sh", {
+    bucket = aws_s3_bucket.bucket.id
+  })
+  server_side_encryption = "AES256"
+}
 resource "aws_s3_bucket_object" "env" {
   bucket                 = aws_s3_bucket.resources.id
   key                    = "bitwarden-env"
