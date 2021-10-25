@@ -55,6 +55,7 @@ rm -f /tmp/sops-3.7.1-1.x86_64.rpm
 export SOPS_KMS_ARN="${kms_key_arn}"
 aws s3 cp "s3://${resources_bucket}/${bitwarden_env_key}" /home/ec2-user/bitwarden/compose/env.enc
 sops -d /home/ec2-user/bitwarden/compose/env.enc > /home/ec2-user/bitwarden/compose/.env
+rm -f /home/ec2-user/bitwarden/compose/env.enc
 
 # Configure docker-compose
 yum install -y jq
@@ -66,7 +67,7 @@ aws s3 cp "s3://${resources_bucket}/${bitwarden_compose_key}" /home/ec2-user/bit
 aws s3 cp "s3://${resources_bucket}/${backup_script_key}" /home/ec2-user/bitwarden/scripts/backup.sh
 chmod a+x /home/ec2-user/bitwarden/scripts/backup.sh
 cat >> /etc/cron.d/bitwarden-backup << 'EOF'
-${backup_schedule} root /home/ec2-user/bitwarden/scripts/backup.sh
+${backup_schedule} root /home/ec2-user/bitwarden/scripts/backup.sh > /dev/null 2>&1
 EOF
 
 # The restore script
