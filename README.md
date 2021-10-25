@@ -1,3 +1,145 @@
+# bitwarden-tf-aws
+
+Terraform templates for deploying [bitwarden_rs](https://github.com/dani-garcia/bitwarden_rs) to AWS.
+
+## Prerequisites
+
+- Route53 hosted zone
+- SMTP credentials
+- EC2 key pair
+- KMS key
+
+## Features
+
+- HTTPS using LetsEncrypt
+- Backups to S3 (daily by default)
+- fail2ban and logrotate
+- Auto healing using an auto scaling group
+- Saving cost using a spot instance
+- Fixed source IP address by reattaching ENI
+- Encrypted secrets using [mozilla/sops](https://github.com/mozilla/sops)
+
+## How it works
+
+This module provisions the following resources:
+
+- Auto Scaling Group with mixed instances policy
+- Launch Template
+- Elastic IP
+- Elastic Network Interface
+- Security Group
+- IAM Role for ENI and EBS attachment and S3 for file operations
+
+By default, an instance of the latest Amazon Linux 2 is launched.
+The instance will run [init.sh](data/init.sh) to:
+
+1. Attach the ENI to `eth1`
+2. Attach the EBS volume as `/dev/xvdf` and mount it
+3. Install and configure `docker`, `docker-compose`, `sops`, `fail2ban`
+4. Start `Bitwarden`
+5. Switch the default route to `eth1`
+
+## Secrets
+
+The secrets are encrypted and stored in the `env.enc` file.
+The file format is:
+
+```env
+acme_email=email@example.com
+signups_allowed=false
+domain=bitwarden.example.com
+smtp_host=smtp.gmail.com
+smtp_port=587
+smtp_ssl=true
+smtp_username=username@gmail.com
+smtp_password="V3ryStr0ngPa$sw0rd!"
+enable_admin_page=true
+admin_token=0YakKKYV01Qyz2Y3ynrJVYhw4fy1HtH+oCyVK8k3LhvnpawvkmUT/LZAibYJp3Eq
+bucket=bitwarden-bucket
+db_user=bitwarden
+db_user_password=ChangeThisVeryStrongPassword
+db_root_password=ReplaceThisEvenStrongerPassword
+```
+
+**NOTE**: I strongly advise **NOT** to enable the Admin Page, hence to remove
+the lines containing `enable_admin_page` and `admin_token`. If you still want
+to enable it, you should at least generate a 48 char long password.
+
+```bash
+$ openssl rand -base64 48
+```
+
+Once the `env.enc` file is populated with the correct secrets it must be
+encrypted. This file should never be left unencrypted.
+
+```bash
+$ export SOPS_KMS_ARN="KMS_KEY_ARN"
+$ vim data/env.enc
+$ sops -e -i data/env.enc
+```
+
+I am not going into too many details, but it is advisable not to share your
+`AWS Account ID`, so we're gonna replace the `ARN` (which contains the `AWS
+Account ID`) with a generic one which will be handled on-the-fly by the
+terraform code.
+
+```bash
+$ sed -e 's/arn:aws:kms:[^ ]*:[0-9]\+:[[:alnum:]\/-]*/KMS_KEY_ARN/' -i data/env.enc
+```
+
+## Allow SSH access
+
+The EC2 instance can be accessed via ssh from the IP ranges defined in
+`ssh_cidr`.
+
+## Environment
+
+You can create multiple environments by setting an the env variable
+`ENVIRONMENT` to `prod` or `dev` or whatever suits you.
+
+```bash
+export ENVIRONMENT=prod
+```
+
+## Usage
+
+Terraform is configured to store its state in a pre-existing S3 bucket called
+`aws-infra-tf`. If you don't want to create a S3 bucket with this name or have
+another bucket for this purpose you can change it
+[here](https://github.com/eana/bitwarden-tf-aws/blob/master/terraform.tf#L5).
+
+If you set the domain in the
+[env.enc](https://github.com/eana/bitwarden-tf-aws/blob/master/README.md?plain=1#L50)
+file `bitwarden.example.com`, the zone to create the DNS record in should be
+`example.com.`:
+
+```bash
+export TF_VAR_route53_zone="example.com."
+```
+
+To run this code you need to execute:
+
+```bash
+$ make init
+$ make plan
+$ make apply
+```
+
+Note that this code will create resources which will cost money (EC2 Instance,
+for example). Run `make plan-destroy && make apply` when you don't need these
+resources.
+
+## TODO:
+
+1. Add a restore script
+2. Manage dependencies with [renovate-bot](https://github.com/renovatebot/renovate)
+3. Implement a retry mechanism when attaching ENI and EBS
+4. Detect if the EBS volume has been formatted or not
+
+## Contributions
+
+This is an open source software. Feel free to open issues and pull requests.
+
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Requirements
 
