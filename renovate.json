@@ -7,5 +7,22 @@
   "labels": ["dependencies"],
   "schedule": ["after 10am and before 3pm on every weekday"],
   "assignees": ["@eana"],
-  "reviewers": ["@eana"]
+  "reviewers": ["@eana"],
+  "regexManagers": [
+    {
+      "fileMatch": ["(^|/)init.sh$"],
+      "matchStrings": [
+        "#\\s*renovate:\\s*datasource=(?<datasource>.*?) depName=(?<depName>.*?)( versioning=(?<versioning>.*?))?\\sexport ENV_.*?_VERSION=\"?(?<currentValue>.*?)\"?\\s"
+      ],
+      "versioningTemplate": "{{#if versioning}}{{versioning}}{{else}}semver{{/if}}"
+    }
+  ],
+  "packageRules": [
+    {
+      "packagePatterns": ["*"],
+      "groupName": "development (patch and minor) upgrades",
+      "groupSlug": "dev-deps",
+      "matchUpdateTypes": ["minor", "patch"]
+    }
+  ]
 }
