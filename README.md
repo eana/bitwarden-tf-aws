@@ -132,7 +132,8 @@ resources.
 ## TODO:
 
 1. Add a restore script
-2. Manage dependencies with [renovate-bot](https://github.com/renovatebot/renovate)
+2. ~~Manage dependencies with
+   [renovate-bot](https://github.com/renovatebot/renovate)~~
 3. Implement a retry mechanism when attaching ENI and EBS
 4. Detect if the EBS volume has been formatted or not
 

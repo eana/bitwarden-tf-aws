@@ -43,13 +43,17 @@ usermod -a -G docker ec2-user
 systemctl start docker.service
 
 # Install docker-compose
-curl -L "https://github.com/docker/compose/releases/download/v2.0.1/docker-compose-linux-x86_64" -o /usr/local/bin/docker-compose
+# renovate: datasource=github-releases depName=docker/compose versioning=semver
+export ENV_DOCKER_COMPOSE_VERSION="v2.0.1"
+curl -L "https://github.com/docker/compose/releases/download/$ENV_DOCKER_COMPOSE_VERSION/docker-compose-linux-x86_64" -o /usr/local/bin/docker-compose
 chmod a+x /usr/local/bin/docker-compose
 
 # Install mozilla sops
-curl -L "https://github.com/mozilla/sops/releases/download/v3.7.1/sops-3.7.1-1.x86_64.rpm" -o /tmp/sops-3.7.1-1.x86_64.rpm
-rpm -i /tmp/sops-3.7.1-1.x86_64.rpm
-rm -f /tmp/sops-3.7.1-1.x86_64.rpm
+# renovate: datasource=github-releases depName=mozilla/sops versioning=semver
+export ENV_SOPS_VERSION="v3.7.1"
+curl -L "https://github.com/mozilla/sops/releases/download/$ENV_SOPS_VERSION/sops-$(echo $ENV_SOPS_VERSION | cut -c2-)-1.x86_64.rpm" -o "/tmp/sops-$(echo $ENV_SOPS_VERSION | cut -c2-)-1.x86_64.rpm"
+rpm -i "/tmp/sops-$(echo $ENV_SOPS_VERSION | cut -c2-)-1.x86_64.rpm"
+rm -f "/tmp/sops-$(echo $ENV_SOPS_VERSION | cut -c2-)-1.x86_64.rpm"
 
 # Get the secrets
 export SOPS_KMS_ARN="${kms_key_arn}"
