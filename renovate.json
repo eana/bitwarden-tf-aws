@@ -16,13 +16,5 @@
       ],
       "versioningTemplate": "{{#if versioning}}{{versioning}}{{else}}semver{{/if}}"
     }
-  ],
-  "packageRules": [
-    {
-      "packagePatterns": ["*"],
-      "groupName": "development (patch and minor) upgrades",
-      "groupSlug": "dev-deps",
-      "matchUpdateTypes": ["minor", "patch"]
-    }
   ]
 }
