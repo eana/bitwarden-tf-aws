@@ -64,7 +64,7 @@ systemctl start docker.service
 
 # Install docker-compose
 # renovate: datasource=github-releases depName=docker/compose versioning=semver
-export ENV_DOCKER_COMPOSE_VERSION="v2.0.1"
+export ENV_DOCKER_COMPOSE_VERSION="v2.1.0"
 curl -L "https://github.com/docker/compose/releases/download/$ENV_DOCKER_COMPOSE_VERSION/docker-compose-linux-x86_64" -o /usr/local/bin/docker-compose
 chmod a+x /usr/local/bin/docker-compose
 
