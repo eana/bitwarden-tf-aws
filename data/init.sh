@@ -28,7 +28,7 @@ function retry {
 
 # Attach the ENI
 instance_id="$(/opt/aws/bin/ec2-metadata -i | cut -d' ' -f2)"
-retry 5 aws ec2 attach-network-interface \
+retry 10 aws ec2 attach-network-interface \
     --instance-id "$instance_id" \
     --device-index 1 \
     --network-interface-id "${eni_id}"
@@ -43,7 +43,7 @@ curl --retry 10 http://www.example.com
 systemctl restart amazon-ssm-agent.service
 
 # Attach the EBS volume
-retry 5 aws ec2 attach-volume \
+retry 10 aws ec2 attach-volume \
     --volume-id "${volume_id}" \
     --instance-id "$instance_id" \
     --device /dev/xvdf
@@ -83,7 +83,9 @@ rm -f /home/ec2-user/bitwarden/compose/env.enc
 
 # Configure docker-compose
 yum install -y jq
-mkdir -p /home/ec2-user/bitwarden/{compose,letsencrypt,bitwarden-data,mysql,scripts}
+mkdir -p /home/ec2-user/bitwarden/{compose,traefik,bitwarden-data,mysql,scripts}
+mkdir -p /home/ec2-user/bitwarden/traefik/{letsencrypt,log}
+touch -f /home/ec2-user/bitwarden/traefik/log/access.log
 touch -f /home/ec2-user/bitwarden/bitwarden-data/bitwarden.log
 aws s3 cp "s3://${resources_bucket}/${bitwarden_compose_key}" /home/ec2-user/bitwarden/compose/docker-compose.yml
 
@@ -125,7 +127,7 @@ sleep 120 # wait 2 minutes for other resources to come up
 docker-compose -f /home/ec2-user/bitwarden/compose/docker-compose.yml --env-file /home/ec2-user/bitwarden/compose/.env up -d
 
 # Fix permissions
-chown ec2-user:ec2-user -R /home/ec2-user/bitwarden/{compose,scripts,mysql}
+chown ec2-user:ec2-user -R /home/ec2-user/bitwarden/{compose,scripts,mysql,traefik}
 
 # Switch the default route to eth1
 ip route del default dev eth0

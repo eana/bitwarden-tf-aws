@@ -12,6 +12,7 @@ while true; do
     if [ -z $(echo "$HEADER" | head -1 | grep 404 | cut -d \  -f 2) ]; then
         echo "Running shutdown hook."
         docker-compose -f /home/ec2-user/bitwarden/compose/docker-compose.yml down
+        /home/ec2-user/bitwarden/scripts/backup.sh
         break
     else
         # Spot instance not yet marked for termination.

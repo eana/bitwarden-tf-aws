@@ -1,6 +1,7 @@
 # bitwarden-tf-aws
 
-Terraform templates for deploying [bitwarden_rs](https://github.com/dani-garcia/bitwarden_rs) to AWS.
+Terraform templates for deploying
+[bitwarden_rs](https://github.com/dani-garcia/bitwarden_rs) to AWS.
 
 ## Prerequisites
 
@@ -114,6 +115,7 @@ file `bitwarden.example.com`, the zone to create the DNS record in should be
 `example.com.`:
 
 ```bash
+export TF_VAR_domain="bitwarden.example.com"
 export TF_VAR_route53_zone="example.com."
 ```
 
@@ -136,6 +138,7 @@ resources.
    [renovate-bot](https://github.com/renovatebot/renovate)~~
 3. ~~Implement a retry mechanism when attaching ENI and EBS~~
 4. Detect if the EBS volume has been formatted or not
+5. Add logrotate for Traefik logs
 
 ## Contributions
 
@@ -146,7 +149,7 @@ This is an open source software. Feel free to open issues and pull requests.
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | = 1.0.9 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | =1.0.10 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | = 3.63.0 |
 | <a name="requirement_local"></a> [local](#requirement\_local) | = 2.1.0 |
 

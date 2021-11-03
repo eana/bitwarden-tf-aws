@@ -1,4 +1,4 @@
-version: '3.5'
+version: "3.5"
 
 services:
   dockerproxy:
@@ -28,13 +28,17 @@ services:
       - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
       - "--certificatesresolvers.myresolver.acme.email=${acme_email}"
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+      - "--accesslog=true"
+      - "--accesslog.bufferingsize=100"
+      - "--accesslog.filepath=/var/log/access.log"
       #- "--log.level=DEBUG"
       #- "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
     ports:
       - "80:8080"
       - "443:8443"
     volumes:
-      - "/home/ec2-user/bitwarden/letsencrypt:/letsencrypt"
+      - "/home/ec2-user/bitwarden/traefik/letsencrypt:/letsencrypt"
+      - "/home/ec2-user/bitwarden/traefik/log:/var/log"
     networks:
       - default
       - internal
@@ -76,7 +80,7 @@ services:
       SMTP_FROM: "bitwarden@${domain}"
       SMTP_USERNAME: "${smtp_username}"
       SMTP_PASSWORD: "${smtp_password}"
-      DATABASE_URL: 'mysql://${db_user}:${db_user_password}@mysql/bitwarden'
+      DATABASE_URL: "mysql://${db_user}:${db_user_password}@mysql/bitwarden"
     labels:
       - "traefik.enable=true"
       - "traefik.http.middlewares.redirect-https.redirectScheme.scheme=https"
