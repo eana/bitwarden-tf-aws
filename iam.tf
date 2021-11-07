@@ -20,6 +20,7 @@ EOF
 
   tags = merge(
     local.default_tags,
+    var.additional_tags,
   )
 }
 
@@ -59,7 +60,7 @@ resource "aws_iam_role_policy" "ebs" {
       "Resource": "arn:aws:ec2:*:*:instance/*",
       "Condition":{
         "StringEquals":{
-          "aws:ResourceTag/Name":"bitwarden"
+          "aws:ResourceTag/Name":"${var.name}"
         }
       }
     },
@@ -72,7 +73,7 @@ resource "aws_iam_role_policy" "ebs" {
       "Resource": "arn:aws:ec2:*:*:volume/*",
       "Condition":{
         "StringEquals":{
-          "aws:ResourceTag/Name":"bitwarden"
+          "aws:ResourceTag/Name":"${var.name}"
         }
       }
     }

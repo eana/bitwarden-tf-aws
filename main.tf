@@ -1,7 +1,7 @@
 resource "aws_launch_template" "this" {
   name     = var.name
   image_id = data.aws_ami.this.id
-  key_name = "admin-${terraform.workspace}"
+  key_name = "admin-${var.environment}"
 
   iam_instance_profile {
     arn = aws_iam_instance_profile.this.arn
@@ -29,7 +29,6 @@ resource "aws_launch_template" "this" {
       fail2ban_jail_key                      = aws_s3_bucket_object.fail2ban_jail.key
       admin_fail2ban_filter_key              = aws_s3_bucket_object.admin_fail2ban_filter.key
       admin_fail2ban_jail_key                = aws_s3_bucket_object.admin_fail2ban_jail.key
-      kms_key_arn                            = data.aws_kms_key.this.arn
     })
   )
 
@@ -37,6 +36,7 @@ resource "aws_launch_template" "this" {
 
   tags = merge(
     local.default_tags,
+    var.additional_tags,
   )
 }
 
@@ -78,5 +78,6 @@ resource "aws_ebs_volume" "this" {
 
   tags = merge(
     local.default_tags,
+    var.additional_tags,
   )
 }
