@@ -2,6 +2,10 @@ provider "aws" {
   region = "eu-west-1"
 }
 
+terraform {
+  required_version = ">= 0.13.1"
+}
+
 data "local_file" "this" {
   filename = "${path.module}/env.enc"
 }
