@@ -25,7 +25,7 @@ resource "aws_s3_bucket" "bucket" {
   tags = merge(
     local.default_tags,
     {
-      Name = "bitwarden-bucket"
+      Name = "${var.name}-bucket"
     },
     var.additional_tags,
   )
@@ -51,7 +51,7 @@ resource "aws_s3_bucket" "resources" {
   tags = merge(
     local.default_tags,
     {
-      Name = "bitwarden-resources-bucket"
+      Name = "${var.name}-resources-bucket"
     },
     var.additional_tags,
   )
@@ -82,7 +82,7 @@ resource "aws_s3_bucket_object" "AWS_SpotTerminationNotifier" {
 resource "aws_s3_bucket_object" "env" {
   bucket                 = aws_s3_bucket.resources.id
   key                    = "bitwarden-env"
-  content                = replace(data.local_file.this.content, "KMS_KEY_ARN", data.aws_kms_key.this.arn)
+  content                = var.env_file
   server_side_encryption = "AES256"
 }
 

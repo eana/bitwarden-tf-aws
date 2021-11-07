@@ -29,7 +29,6 @@ resource "aws_launch_template" "this" {
       fail2ban_jail_key                      = aws_s3_bucket_object.fail2ban_jail.key
       admin_fail2ban_filter_key              = aws_s3_bucket_object.admin_fail2ban_filter.key
       admin_fail2ban_jail_key                = aws_s3_bucket_object.admin_fail2ban_jail.key
-      kms_key_arn                            = data.aws_kms_key.this.arn
     })
   )
 

@@ -137,7 +137,7 @@ resources.
 2. ~~Manage dependencies with
    [renovate-bot](https://github.com/renovatebot/renovate)~~
 3. ~~Implement a retry mechanism when attaching ENI and EBS~~
-4. Detect if the EBS volume has been formatted or not
+4. ~~Detect if the EBS volume has been formatted or not~~
 5. Add logrotate for Traefik logs
 
 ## Contributions
@@ -158,7 +158,6 @@ This is an open source software. Feel free to open issues and pull requests.
 | Name | Version |
 |------|---------|
 | <a name="provider_aws"></a> [aws](#provider\_aws) | >= 3.56.0 |
-| <a name="provider_local"></a> [local](#provider\_local) | >= 1.4 |
 
 ## Modules
 
@@ -196,11 +195,9 @@ No modules.
 | [aws_security_group.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
 | [aws_ami.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
 | [aws_iam_policy_document.s3policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
-| [aws_kms_key.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/kms_key) | data source |
 | [aws_route53_zone.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/route53_zone) | data source |
 | [aws_subnets.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/subnets) | data source |
 | [aws_vpc.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/vpc) | data source |
-| [local_file.this](https://registry.terraform.io/providers/hashicorp/local/latest/docs/data-sources/file) | data source |
 
 ## Inputs
 
@@ -210,8 +207,8 @@ No modules.
 | <a name="input_backup_schedule"></a> [backup\_schedule](#input\_backup\_schedule) | A cron expression to describe how often your data is backed up | `string` | `"0 9 * * *"` | no |
 | <a name="input_bucket_version_expiration_days"></a> [bucket\_version\_expiration\_days](#input\_bucket\_version\_expiration\_days) | Specifies when noncurrent object versions expire | `number` | `30` | no |
 | <a name="input_domain"></a> [domain](#input\_domain) | The domain name for the Bitwarden instance | `string` | n/a | yes |
+| <a name="input_env_file"></a> [env\_file](#input\_env\_file) | The name of the default docker-compose encrypted env file | `string` | n/a | yes |
 | <a name="input_environment"></a> [environment](#input\_environment) | The environment to deploy to | `string` | n/a | yes |
-| <a name="input_kms_key_alias"></a> [kms\_key\_alias](#input\_kms\_key\_alias) | The alias for the KMS customer master key which the data/env.enc file was encrypted with | `string` | n/a | yes |
 | <a name="input_name"></a> [name](#input\_name) | Name to be used as identifier | `string` | `"bitwarden"` | no |
 | <a name="input_route53_zone"></a> [route53\_zone](#input\_route53\_zone) | The zone in which the DNS record will be created | `string` | n/a | yes |
 | <a name="input_ssh_cidr"></a> [ssh\_cidr](#input\_ssh\_cidr) | The IP ranges from where the SSH connections will be allowed | `list(any)` | `[]` | no |

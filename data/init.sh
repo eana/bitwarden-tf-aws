@@ -39,9 +39,6 @@ sleep 10
 # Waiting for network connection
 curl --retry 10 http://www.example.com
 
-# Restart the SSM agent
-systemctl restart amazon-ssm-agent.service
-
 # Attach the EBS volume
 retry 10 aws ec2 attach-volume \
     --volume-id "${volume_id}" \
@@ -53,11 +50,14 @@ sleep 10
 
 # Mount the EBS volume
 mkdir -p /home/ec2-user/bitwarden
-# TODO: check if the partition is formatted or not (lsblk -f)
+if ! lsblk -f /dev/xvdf | grep xvdf | grep -q ext4; then
+  echo "/dev/xvdf is not formatted. Formatting it..."
+  mkfs.ext4 /dev/xvdf
+fi
 mount /dev/xvdf /home/ec2-user/bitwarden
 
 # Install docker
-yum update
+yum update -y
 yum install -y docker
 usermod -a -G docker ec2-user
 systemctl start docker.service
@@ -76,9 +76,8 @@ rpm -i "/tmp/sops-$(echo $ENV_SOPS_VERSION | cut -c2-)-1.x86_64.rpm"
 rm -f "/tmp/sops-$(echo $ENV_SOPS_VERSION | cut -c2-)-1.x86_64.rpm"
 
 # Get the secrets
-export SOPS_KMS_ARN="${kms_key_arn}"
 aws s3 cp "s3://${resources_bucket}/${bitwarden_env_key}" /home/ec2-user/bitwarden/compose/env.enc
-sops -d /home/ec2-user/bitwarden/compose/env.enc > /home/ec2-user/bitwarden/compose/.env
+/usr/local/bin/sops -d /home/ec2-user/bitwarden/compose/env.enc > /home/ec2-user/bitwarden/compose/.env
 rm -f /home/ec2-user/bitwarden/compose/env.enc
 
 # Configure docker-compose
@@ -121,13 +120,13 @@ screen -dm -S AWS_SpotTerminationNotifier /home/ec2-user/bitwarden/scripts/AWS_S
 # Pull all the docker images
 docker-compose -f /home/ec2-user/bitwarden/compose/docker-compose.yml pull -q
 
+# Fix permissions
+chown ec2-user:ec2-user -R /home/ec2-user/bitwarden/{compose,traefik,bitwarden-data,mysql,scripts}
+
 # Start bitwarden
 echo "Starting bitwarden in 2 minutes"
 sleep 120 # wait 2 minutes for other resources to come up
 docker-compose -f /home/ec2-user/bitwarden/compose/docker-compose.yml --env-file /home/ec2-user/bitwarden/compose/.env up -d
-
-# Fix permissions
-chown ec2-user:ec2-user -R /home/ec2-user/bitwarden/{compose,scripts,mysql,traefik}
 
 # Switch the default route to eth1
 ip route del default dev eth0
