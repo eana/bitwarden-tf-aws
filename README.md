@@ -11,7 +11,7 @@ Terraform module for deploying a cheap yet stable
 * [Usage](#usage)
     * [Secrets](#secrets)
     * [Terraform](#terraform)
-* [TODO:](#todo)
+* [TODO](#todo)
 * [Contributions](#contributions)
 * [Requirements](#requirements)
 * [Providers](#providers)
@@ -126,7 +126,7 @@ module "bitwarden" {
 }
 ```
 
-## TODO:
+## TODO
 
 1. Add a restore script
 2. ~~Manage dependencies with
