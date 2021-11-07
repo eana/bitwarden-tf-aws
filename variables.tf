@@ -1,7 +1,12 @@
 variable "name" {
-  description = "Name to be used  as identifier"
+  description = "Name to be used as identifier"
   type        = string
   default     = "bitwarden"
+}
+
+variable "environment" {
+  description = "The environment to deploy to"
+  type        = string
 }
 
 variable "tags" {
@@ -35,11 +40,16 @@ variable "ssh_cidr" {
 variable "kms_key_alias" {
   description = "The alias for the KMS customer master key which the data/env.enc file was encrypted with"
   type        = string
-  default     = "alias/bitwarden-sops-encryption-key-prod"
 }
 
 variable "backup_schedule" {
   description = "A cron expression to describe how often your data is backed up"
   type        = string
   default     = "0 9 * * *"
+}
+
+variable "additional_tags" {
+  description = "Additional tags to apply to resources created with this module"
+  type        = map(string)
+  default     = {}
 }

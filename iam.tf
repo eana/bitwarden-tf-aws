@@ -20,6 +20,7 @@ EOF
 
   tags = merge(
     local.default_tags,
+    var.additional_tags,
   )
 }
 

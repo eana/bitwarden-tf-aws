@@ -27,14 +27,14 @@ data "aws_ami" "this" {
 data "aws_vpc" "this" {
   filter {
     name   = "tag:Name"
-    values = ["${terraform.workspace}-vpc"]
+    values = ["${var.environment}-vpc"]
   }
 }
 
 data "aws_subnets" "this" {
   filter {
     name   = "tag:Name"
-    values = ["${terraform.workspace}-vpc-public-${local.az}"]
+    values = ["${var.environment}-vpc-public-${local.az}"]
   }
 }
 

@@ -1,7 +1,7 @@
 resource "aws_launch_template" "this" {
   name     = var.name
   image_id = data.aws_ami.this.id
-  key_name = "admin-${terraform.workspace}"
+  key_name = "admin-${var.environment}"
 
   iam_instance_profile {
     arn = aws_iam_instance_profile.this.arn
@@ -37,6 +37,7 @@ resource "aws_launch_template" "this" {
 
   tags = merge(
     local.default_tags,
+    var.additional_tags,
   )
 }
 
@@ -78,5 +79,6 @@ resource "aws_ebs_volume" "this" {
 
   tags = merge(
     local.default_tags,
+    var.additional_tags,
   )
 }

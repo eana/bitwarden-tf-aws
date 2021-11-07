@@ -27,6 +27,7 @@ resource "aws_s3_bucket" "bucket" {
     {
       Name = "bitwarden-bucket"
     },
+    var.additional_tags,
   )
 }
 
@@ -52,13 +53,14 @@ resource "aws_s3_bucket" "resources" {
     {
       Name = "bitwarden-resources-bucket"
     },
+    var.additional_tags,
   )
 }
 
 resource "aws_s3_bucket_object" "compose" {
   bucket                 = aws_s3_bucket.resources.id
   key                    = "bitwarden-docker-compose.yml"
-  content                = file("data/docker-compose.yml")
+  content                = file("${path.module}/data/docker-compose.yml")
   server_side_encryption = "AES256"
 }
 
@@ -73,7 +75,7 @@ resource "aws_s3_bucket_object" "backup" {
 resource "aws_s3_bucket_object" "AWS_SpotTerminationNotifier" {
   bucket                 = aws_s3_bucket.resources.id
   key                    = "bitwarden-AWS_SpotTerminationNotifier.sh"
-  content                = file("data/AWS_SpotTerminationNotifier.sh")
+  content                = file("${path.module}/data/AWS_SpotTerminationNotifier.sh")
   server_side_encryption = "AES256"
 }
 
@@ -87,35 +89,35 @@ resource "aws_s3_bucket_object" "env" {
 resource "aws_s3_bucket_object" "logrotate" {
   bucket                 = aws_s3_bucket.resources.id
   key                    = "bitwarden-logrotate"
-  content                = file("data/bitwarden-logrotate")
+  content                = file("${path.module}/data/bitwarden-logrotate")
   server_side_encryption = "AES256"
 }
 
 resource "aws_s3_bucket_object" "fail2ban_filter" {
   bucket                 = aws_s3_bucket.resources.id
   key                    = "fail2ban/filter"
-  content                = file("data/fail2ban/bitwarden-fail2ban-filter")
+  content                = file("${path.module}/data/fail2ban/bitwarden-fail2ban-filter")
   server_side_encryption = "AES256"
 }
 
 resource "aws_s3_bucket_object" "admin_fail2ban_filter" {
   bucket                 = aws_s3_bucket.resources.id
   key                    = "fail2ban/admin-filter"
-  content                = file("data/fail2ban/bitwarden-admin-fail2ban-filter")
+  content                = file("${path.module}/data/fail2ban/bitwarden-admin-fail2ban-filter")
   server_side_encryption = "AES256"
 }
 
 resource "aws_s3_bucket_object" "fail2ban_jail" {
   bucket                 = aws_s3_bucket.resources.id
   key                    = "fail2ban/jail"
-  content                = file("data/fail2ban/bitwarden-fail2ban-jail")
+  content                = file("${path.module}/data/fail2ban/bitwarden-fail2ban-jail")
   server_side_encryption = "AES256"
 }
 
 resource "aws_s3_bucket_object" "admin_fail2ban_jail" {
   bucket                 = aws_s3_bucket.resources.id
   key                    = "fail2ban/admin-jail"
-  content                = file("data/fail2ban/bitwarden-admin-fail2ban-jail")
+  content                = file("${path.module}/data/fail2ban/bitwarden-admin-fail2ban-jail")
   server_side_encryption = "AES256"
 }
 
