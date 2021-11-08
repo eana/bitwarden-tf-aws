@@ -50,6 +50,8 @@ sleep 10
 
 # Mount the EBS volume
 mkdir -p /home/ec2-user/bitwarden
+chown ec2-user:ec2-user /home/ec2-user/bitwarden
+retry 10 lsblk -f /dev/xvdf
 if ! lsblk -f /dev/xvdf | grep xvdf | grep -q ext4; then
   echo "/dev/xvdf is not formatted. Formatting it..."
   mkfs.ext4 /dev/xvdf
@@ -96,7 +98,8 @@ ${backup_schedule} root /home/ec2-user/bitwarden/scripts/backup.sh > /dev/null 2
 EOF
 
 # The restore script
-# To be added later
+aws s3 cp "s3://${resources_bucket}/${restore_script_key}" /home/ec2-user/bitwarden/scripts/restore.sh
+chmod a+x /home/ec2-user/bitwarden/scripts/restore.sh
 
 # Install fail2ban
 amazon-linux-extras install epel -y
