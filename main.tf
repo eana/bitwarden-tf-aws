@@ -24,7 +24,8 @@ resource "aws_launch_template" "this" {
       AWS_SpotTerminationNotifier_script_key = aws_s3_bucket_object.AWS_SpotTerminationNotifier.key
       backup_schedule                        = var.backup_schedule
       bitwarden_env_key                      = aws_s3_bucket_object.env.key
-      logrotate_key                          = aws_s3_bucket_object.logrotate.key
+      bitwarden-logrotate_key                = aws_s3_bucket_object.bitwarden-logrotate.key
+      traefik-logrotate_key                  = aws_s3_bucket_object.traefik-logrotate.key
       fail2ban_filter_key                    = aws_s3_bucket_object.fail2ban_filter.key
       fail2ban_jail_key                      = aws_s3_bucket_object.fail2ban_jail.key
       admin_fail2ban_filter_key              = aws_s3_bucket_object.admin_fail2ban_filter.key

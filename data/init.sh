@@ -110,7 +110,8 @@ aws s3 cp "s3://${resources_bucket}/${admin_fail2ban_jail_key}" /etc/fail2ban/ja
 systemctl reload fail2ban
 
 # Logrotate
-aws s3 cp "s3://${resources_bucket}/${logrotate_key}" /etc/logrotate.d/bitwarden
+aws s3 cp "s3://${resources_bucket}/${bitwarden-logrotate_key}" /etc/logrotate.d/bitwarden
+aws s3 cp "s3://${resources_bucket}/${traefik-logrotate_key}" /etc/logrotate.d/traefik
 
 # Gracefully shutdown the app if the instance is scheduled for termination
 aws s3 cp "s3://${resources_bucket}/${AWS_SpotTerminationNotifier_script_key}" /home/ec2-user/bitwarden/scripts/AWS_SpotTerminationNotifier.sh

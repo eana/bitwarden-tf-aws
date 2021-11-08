@@ -86,10 +86,17 @@ resource "aws_s3_bucket_object" "env" {
   server_side_encryption = "AES256"
 }
 
-resource "aws_s3_bucket_object" "logrotate" {
+resource "aws_s3_bucket_object" "bitwarden-logrotate" {
   bucket                 = aws_s3_bucket.resources.id
   key                    = "bitwarden-logrotate"
   content                = file("${path.module}/data/bitwarden-logrotate")
+  server_side_encryption = "AES256"
+}
+
+resource "aws_s3_bucket_object" "traefik-logrotate" {
+  bucket                 = aws_s3_bucket.resources.id
+  key                    = "traefik-logrotate"
+  content                = file("${path.module}/data/traefik-logrotate")
   server_side_encryption = "AES256"
 }
 
