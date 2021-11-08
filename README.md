@@ -1,7 +1,8 @@
 # bitwarden-tf-aws
 
 Terraform module for deploying a cheap yet stable
-[bitwarden_rs](https://github.com/dani-garcia/bitwarden_rs) to AWS.
+[vaultwarden](https://github.com/dani-garcia/vaultwarden) (formerly
+bitwarden_rs) to AWS.
 
 <!-- vim-markdown-toc GFM -->
 
