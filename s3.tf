@@ -72,6 +72,16 @@ resource "aws_s3_bucket_object" "backup" {
   })
   server_side_encryption = "AES256"
 }
+
+resource "aws_s3_bucket_object" "restore" {
+  bucket = aws_s3_bucket.resources.id
+  key    = "bitwarden-restore.sh"
+  content = templatefile("${path.module}/data/restore.sh", {
+    bucket = aws_s3_bucket.bucket.id
+  })
+  server_side_encryption = "AES256"
+}
+
 resource "aws_s3_bucket_object" "AWS_SpotTerminationNotifier" {
   bucket                 = aws_s3_bucket.resources.id
   key                    = "bitwarden-AWS_SpotTerminationNotifier.sh"

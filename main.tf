@@ -21,6 +21,7 @@ resource "aws_launch_template" "this" {
       resources_bucket                       = aws_s3_bucket.resources.id
       bitwarden_compose_key                  = aws_s3_bucket_object.compose.key
       backup_script_key                      = aws_s3_bucket_object.backup.key
+      restore_script_key                     = aws_s3_bucket_object.restore.key
       AWS_SpotTerminationNotifier_script_key = aws_s3_bucket_object.AWS_SpotTerminationNotifier.key
       backup_schedule                        = var.backup_schedule
       bitwarden_env_key                      = aws_s3_bucket_object.env.key

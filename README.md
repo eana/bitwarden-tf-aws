@@ -129,7 +129,7 @@ module "bitwarden" {
 
 ## TODO
 
-1. Add a restore script
+1. ~~Add a restore script~~
 2. ~~Manage dependencies with
    [renovate-bot](https://github.com/renovatebot/renovate)~~
 3. ~~Implement a retry mechanism when attaching ENI and EBS~~
@@ -185,6 +185,7 @@ No modules.
 | [aws_s3_bucket_object.env](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_object) | resource |
 | [aws_s3_bucket_object.fail2ban_filter](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_object) | resource |
 | [aws_s3_bucket_object.fail2ban_jail](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_object) | resource |
+| [aws_s3_bucket_object.restore](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_object) | resource |
 | [aws_s3_bucket_object.traefik-logrotate](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_object) | resource |
 | [aws_s3_bucket_policy.policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_policy) | resource |
 | [aws_s3_bucket_public_access_block.bucket](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_public_access_block) | resource |
