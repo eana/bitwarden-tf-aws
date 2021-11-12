@@ -5,7 +5,7 @@ set -euo pipefail
 TODAY=$(date +'%Y%m%d')
 
 # Stop the app
-/usr/local/bin/docker-compose -f /home/ec2-user/bitwarden/compose/docker-compose.yml down
+/usr/local/bin/docker-compose -f /home/ec2-user/conf/compose/docker-compose.yml down
 
 # Backup and upload to S3
 cd /home/ec2-user/
@@ -14,4 +14,4 @@ sudo tar cfz "$TODAY"_bitwarden-backup.tar.gz bitwarden/{bitwarden-data,traefik,
 sudo rm "$TODAY"_bitwarden-backup.tar.gz
 
 # Start the app
-/usr/local/bin/docker-compose -f /home/ec2-user/bitwarden/compose/docker-compose.yml up -d
+/usr/local/bin/docker-compose -f /home/ec2-user/conf/compose/docker-compose.yml up -d

@@ -31,6 +31,7 @@ services:
       - "--accesslog=true"
       - "--accesslog.bufferingsize=100"
       - "--accesslog.filepath=/var/log/access.log"
+      - "--providers.file.filename=/etc/traefik/dynamic.yaml"
       #- "--log.level=DEBUG"
       #- "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
     ports:
@@ -39,6 +40,7 @@ services:
     volumes:
       - "/home/ec2-user/bitwarden/traefik/letsencrypt:/letsencrypt"
       - "/home/ec2-user/bitwarden/traefik/log:/var/log"
+      - "/home/ec2-user/conf/traefik/dynamic.yaml:/etc/traefik/dynamic.yaml"
     networks:
       - default
       - internal

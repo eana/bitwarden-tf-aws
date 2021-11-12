@@ -26,6 +26,7 @@ resource "aws_launch_template" "this" {
       backup_schedule                        = var.backup_schedule
       bitwarden_env_key                      = aws_s3_bucket_object.env.key
       bitwarden-logrotate_key                = aws_s3_bucket_object.bitwarden-logrotate.key
+      traefik-dynamic_key                    = aws_s3_bucket_object.traefik-dynamic.key
       traefik-logrotate_key                  = aws_s3_bucket_object.traefik-logrotate.key
       fail2ban_filter_key                    = aws_s3_bucket_object.fail2ban_filter.key
       fail2ban_jail_key                      = aws_s3_bucket_object.fail2ban_jail.key

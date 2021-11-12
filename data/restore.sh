@@ -77,7 +77,7 @@ function restore_backup {
 
     # Stop the app
     echo -e "$YELLOW"Stopping the app..."$RESET"
-    /usr/local/bin/docker-compose -f /home/ec2-user/bitwarden/compose/docker-compose.yml down > /dev/null 2>&1
+    /usr/local/bin/docker-compose -f /home/ec2-user/conf/compose/docker-compose.yml down > /dev/null 2>&1
 
     # Synchronize the backup content with the application directory
     echo -e "$YELLOW"Synchronize the backup content with the application directory..."$RESET"
@@ -87,7 +87,7 @@ function restore_backup {
 
     # Start the app
     echo -e "$YELLOW"Starting the app..."$RESET"
-    /usr/local/bin/docker-compose -f /home/ec2-user/bitwarden/compose/docker-compose.yml up -d > /dev/null 2>&1
+    /usr/local/bin/docker-compose -f /home/ec2-user/conf/compose/docker-compose.yml up -d > /dev/null 2>&1
 }
 
 function cleanup {
