@@ -15,9 +15,15 @@ services:
       - internal
     restart: unless-stopped
   traefik:
-    image: "traefik:v2.5"
+    image: "traefik:v2.5.4"
     container_name: "traefik"
     user: 1000:1000
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.middlewares.security-headers.headers.stsSeconds=15768000"
+      - "traefik.http.middlewares.security-headers.headers.stsPreload=true"
+      - "traefik.http.middlewares.security-headers.headers.forceSTSHeader=true"
+      - "traefik.http.middlewares.security-headers.headers.stsIncludeSubdomains=true"
     command:
       - "--providers.docker=true"
       - "--entrypoints.web.address=:8080"
@@ -92,6 +98,8 @@ services:
       - "traefik.http.routers.bitwarden-ui-https.tls.certresolver=myresolver"
       - "traefik.http.routers.bitwarden-ui-https.tls=true"
       - "traefik.http.routers.bitwarden-ui-https.service=bitwarden-ui"
+      - "traefik.http.routers.bitwarden-ui-https.middlewares=security-headers"
+      - "traefik.http.routers.bitwarden-ui-https.tls.options=default"
       - "traefik.http.routers.bitwarden-ui-http.rule=Host(`${domain}`)"
       - "traefik.http.routers.bitwarden-ui-http.entrypoints=web"
       - "traefik.http.routers.bitwarden-ui-http.middlewares=redirect-https"

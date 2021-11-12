@@ -13,17 +13,3 @@ tls:
         - CurveP521
         - CurveP384
       sniStrict: true
-
-http:
-  middlewares:
-    secHeaders:
-      headers:
-        browserXssFilter: true
-        contentTypeNosniff: true
-        frameDeny: true
-        sslRedirect: true
-        #HSTS Configuration
-        stsIncludeSubdomains: true
-        stsPreload: true
-        #stsSeconds: 15768000
-        stsSeconds: 300
