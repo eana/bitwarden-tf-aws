@@ -110,6 +110,13 @@ resource "aws_s3_bucket_object" "traefik-logrotate" {
   server_side_encryption = "AES256"
 }
 
+resource "aws_s3_bucket_object" "traefik-dynamic" {
+  bucket                 = aws_s3_bucket.resources.id
+  key                    = "traefik-dynamic.yaml"
+  content                = file("${path.module}/data/traefik-dynamic.yaml")
+  server_side_encryption = "AES256"
+}
+
 resource "aws_s3_bucket_object" "fail2ban_filter" {
   bucket                 = aws_s3_bucket.resources.id
   key                    = "fail2ban/filter"

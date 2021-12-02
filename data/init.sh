@@ -64,6 +64,9 @@ yum install -y docker
 usermod -a -G docker ec2-user
 systemctl start docker.service
 
+# Create the directories where the configuration files will be stored
+mkdir -p /home/ec2-user/conf/{compose,traefik,scripts}
+
 # Install docker-compose
 # renovate: datasource=github-releases depName=docker/compose versioning=semver
 export ENV_DOCKER_COMPOSE_VERSION="v2.1.1"
@@ -78,28 +81,30 @@ rpm -i "/tmp/sops-$(echo $ENV_SOPS_VERSION | cut -c2-)-1.x86_64.rpm"
 rm -f "/tmp/sops-$(echo $ENV_SOPS_VERSION | cut -c2-)-1.x86_64.rpm"
 
 # Get the secrets
-aws s3 cp "s3://${resources_bucket}/${bitwarden_env_key}" /home/ec2-user/bitwarden/compose/env.enc
-/usr/local/bin/sops -d /home/ec2-user/bitwarden/compose/env.enc > /home/ec2-user/bitwarden/compose/.env
-rm -f /home/ec2-user/bitwarden/compose/env.enc
+aws s3 cp "s3://${resources_bucket}/${bitwarden_env_key}" /home/ec2-user/conf/compose/env.enc
+/usr/local/bin/sops -d /home/ec2-user/conf/compose/env.enc > /home/ec2-user/conf/compose/.env
+rm -f /home/ec2-user/conf/compose/env.enc
 
 # Configure docker-compose
 yum install -y jq
-mkdir -p /home/ec2-user/bitwarden/{compose,traefik,bitwarden-data,mysql,scripts}
+mkdir -p /home/ec2-user/bitwarden/{bitwarden-data,mysql}
 mkdir -p /home/ec2-user/bitwarden/traefik/{letsencrypt,log}
 touch -f /home/ec2-user/bitwarden/traefik/log/access.log
 touch -f /home/ec2-user/bitwarden/bitwarden-data/bitwarden.log
-aws s3 cp "s3://${resources_bucket}/${bitwarden_compose_key}" /home/ec2-user/bitwarden/compose/docker-compose.yml
 
-# Backups
-aws s3 cp "s3://${resources_bucket}/${backup_script_key}" /home/ec2-user/bitwarden/scripts/backup.sh
-chmod a+x /home/ec2-user/bitwarden/scripts/backup.sh
+aws s3 cp "s3://${resources_bucket}/${bitwarden_compose_key}" /home/ec2-user/conf/compose/docker-compose.yml
+aws s3 cp "s3://${resources_bucket}/${traefik-dynamic_key}" /home/ec2-user/conf/traefik/dynamic.yaml
+
+# The backup script
+aws s3 cp "s3://${resources_bucket}/${backup_script_key}" /home/ec2-user/conf/scripts/backup.sh
+chmod a+x /home/ec2-user/conf/scripts/backup.sh
 cat >> /etc/cron.d/bitwarden-backup << 'EOF'
-${backup_schedule} root /home/ec2-user/bitwarden/scripts/backup.sh > /dev/null 2>&1
+${backup_schedule} root /home/ec2-user/conf/scripts/backup.sh > /dev/null 2>&1
 EOF
 
 # The restore script
-aws s3 cp "s3://${resources_bucket}/${restore_script_key}" /home/ec2-user/bitwarden/scripts/restore.sh
-chmod a+x /home/ec2-user/bitwarden/scripts/restore.sh
+aws s3 cp "s3://${resources_bucket}/${restore_script_key}" /home/ec2-user/conf/scripts/restore.sh
+chmod a+x /home/ec2-user/conf/scripts/restore.sh
 
 # Install fail2ban
 amazon-linux-extras install epel -y
@@ -117,20 +122,21 @@ aws s3 cp "s3://${resources_bucket}/${bitwarden-logrotate_key}" /etc/logrotate.d
 aws s3 cp "s3://${resources_bucket}/${traefik-logrotate_key}" /etc/logrotate.d/traefik
 
 # Gracefully shutdown the app if the instance is scheduled for termination
-aws s3 cp "s3://${resources_bucket}/${AWS_SpotTerminationNotifier_script_key}" /home/ec2-user/bitwarden/scripts/AWS_SpotTerminationNotifier.sh
-chmod a+x /home/ec2-user/bitwarden/scripts/AWS_SpotTerminationNotifier.sh
-screen -dm -S AWS_SpotTerminationNotifier /home/ec2-user/bitwarden/scripts/AWS_SpotTerminationNotifier.sh
+aws s3 cp "s3://${resources_bucket}/${AWS_SpotTerminationNotifier_script_key}" /home/ec2-user/conf/scripts/AWS_SpotTerminationNotifier.sh
+chmod a+x /home/ec2-user/conf/scripts/AWS_SpotTerminationNotifier.sh
+screen -dm -S AWS_SpotTerminationNotifier /home/ec2-user/conf/scripts/AWS_SpotTerminationNotifier.sh
 
 # Pull all the docker images
-docker-compose -f /home/ec2-user/bitwarden/compose/docker-compose.yml pull -q
+docker-compose -f /home/ec2-user/conf/compose/docker-compose.yml pull -q
 
 # Fix permissions
-chown ec2-user:ec2-user -R /home/ec2-user/bitwarden/{compose,traefik,bitwarden-data,mysql,scripts}
+chown ec2-user:ec2-user -R /home/ec2-user/conf
+chown ec2-user:ec2-user -R /home/ec2-user/bitwarden/{bitwarden-data,mysql,traefik}
 
 # Start bitwarden
 echo "Starting bitwarden in 2 minutes"
 sleep 120 # wait 2 minutes for other resources to come up
-docker-compose -f /home/ec2-user/bitwarden/compose/docker-compose.yml --env-file /home/ec2-user/bitwarden/compose/.env up -d
+docker-compose -f /home/ec2-user/conf/compose/docker-compose.yml --env-file /home/ec2-user/conf/compose/.env up -d
 
 # Switch the default route to eth1
 ip route del default dev eth0
