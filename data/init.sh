@@ -69,7 +69,7 @@ mkdir -p /home/ec2-user/conf/{compose,traefik,scripts}
 
 # Install docker-compose
 # renovate: datasource=github-releases depName=docker/compose versioning=semver
-export ENV_DOCKER_COMPOSE_VERSION="v2.2.2"
+export ENV_DOCKER_COMPOSE_VERSION="v2.2.3"
 curl -L "https://github.com/docker/compose/releases/download/$ENV_DOCKER_COMPOSE_VERSION/docker-compose-linux-x86_64" -o /usr/local/bin/docker-compose
 chmod a+x /usr/local/bin/docker-compose
 
