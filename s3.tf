@@ -1,26 +1,6 @@
 #tfsec:ignore:AWS002
 resource "aws_s3_bucket" "bucket" {
   bucket = "${var.name}-bucket"
-  acl    = "private"
-
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        sse_algorithm = "AES256"
-      }
-    }
-  }
-
-  versioning {
-    enabled = true
-  }
-
-  lifecycle_rule {
-    enabled = true
-    noncurrent_version_expiration {
-      days = var.bucket_version_expiration_days
-    }
-  }
 
   tags = merge(
     local.default_tags,
@@ -31,22 +11,49 @@ resource "aws_s3_bucket" "bucket" {
   )
 }
 
+resource "aws_s3_bucket_acl" "bucket" {
+  bucket = aws_s3_bucket.bucket.id
+  acl    = "private"
+}
+
+resource "aws_s3_bucket_versioning" "bucket" {
+  bucket = aws_s3_bucket.bucket.id
+
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "bucket" {
+  bucket = aws_s3_bucket.bucket.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "bucket" {
+  bucket = aws_s3_bucket.bucket.id
+
+  rule {
+    id     = "noncurrent_version_expiration"
+    status = "Enabled"
+
+    filter {
+      prefix = ""
+    }
+
+    noncurrent_version_expiration {
+      noncurrent_days = var.bucket_version_expiration_days
+    }
+  }
+}
+
 #tfsec:ignore:AWS002
 resource "aws_s3_bucket" "resources" {
   bucket = "${var.name}-resources"
-  acl    = "private"
-
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        sse_algorithm = "AES256"
-      }
-    }
-  }
-
-  versioning {
-    enabled = true
-  }
 
   tags = merge(
     local.default_tags,
@@ -57,10 +64,33 @@ resource "aws_s3_bucket" "resources" {
   )
 }
 
+resource "aws_s3_bucket_acl" "resources" {
+  bucket = aws_s3_bucket.resources.id
+  acl    = "private"
+}
+
+resource "aws_s3_bucket_versioning" "resources" {
+  bucket = aws_s3_bucket.resources.id
+
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "resources" {
+  bucket = aws_s3_bucket.resources.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
 resource "aws_s3_bucket_object" "compose" {
   bucket                 = aws_s3_bucket.resources.id
   key                    = "bitwarden-docker-compose.yml"
-  content                = file("${path.module}/data/docker-compose.yml")
+  content                = file("${path.module}/data/docker-compose.yml") #tfsec:ignore:aws-iam-no-policy-wildcards tfsec:ignore:general-secrets-no-plaintext-exposure
   server_side_encryption = "AES256"
 }
 
