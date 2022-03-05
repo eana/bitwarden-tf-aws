@@ -9,7 +9,6 @@ locals {
     directory  = "/bitwarden"
   }
 
-  // Generate asg tags by merging variables in object format
   asg_tags = concat([
     for key, value in var.tags : {
       key                 = key

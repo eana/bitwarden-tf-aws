@@ -19,19 +19,19 @@ resource "aws_launch_template" "this" {
       volume_id                              = aws_ebs_volume.this.id
       bucket                                 = aws_s3_bucket.bucket.id
       resources_bucket                       = aws_s3_bucket.resources.id
-      bitwarden_compose_key                  = aws_s3_bucket_object.compose.key
-      backup_script_key                      = aws_s3_bucket_object.backup.key
-      restore_script_key                     = aws_s3_bucket_object.restore.key
-      AWS_SpotTerminationNotifier_script_key = aws_s3_bucket_object.AWS_SpotTerminationNotifier.key
+      bitwarden_compose_key                  = aws_s3_object.compose.key
+      backup_script_key                      = aws_s3_object.backup.key
+      restore_script_key                     = aws_s3_object.restore.key
+      AWS_SpotTerminationNotifier_script_key = aws_s3_object.AWS_SpotTerminationNotifier.key
       backup_schedule                        = var.backup_schedule
-      bitwarden_env_key                      = aws_s3_bucket_object.env.key
-      bitwarden-logrotate_key                = aws_s3_bucket_object.bitwarden-logrotate.key
-      traefik-dynamic_key                    = aws_s3_bucket_object.traefik-dynamic.key
-      traefik-logrotate_key                  = aws_s3_bucket_object.traefik-logrotate.key
-      fail2ban_filter_key                    = aws_s3_bucket_object.fail2ban_filter.key
-      fail2ban_jail_key                      = aws_s3_bucket_object.fail2ban_jail.key
-      admin_fail2ban_filter_key              = aws_s3_bucket_object.admin_fail2ban_filter.key
-      admin_fail2ban_jail_key                = aws_s3_bucket_object.admin_fail2ban_jail.key
+      bitwarden_env_key                      = aws_s3_object.env.key
+      bitwarden-logrotate_key                = aws_s3_object.bitwarden-logrotate.key
+      traefik-dynamic_key                    = aws_s3_object.traefik-dynamic.key
+      traefik-logrotate_key                  = aws_s3_object.traefik-logrotate.key
+      fail2ban_filter_key                    = aws_s3_object.fail2ban_filter.key
+      fail2ban_jail_key                      = aws_s3_object.fail2ban_jail.key
+      admin_fail2ban_filter_key              = aws_s3_object.admin_fail2ban_filter.key
+      admin_fail2ban_jail_key                = aws_s3_object.admin_fail2ban_jail.key
     })
   )
 
@@ -68,7 +68,14 @@ resource "aws_autoscaling_group" "this" {
     }
   }
 
-  tags = local.asg_tags
+  dynamic "tag" {
+    for_each = local.asg_tags
+    content {
+      key                 = tag.value["key"]
+      value               = tag.value["value"]
+      propagate_at_launch = tag.value["propagate_at_launch"]
+    }
+  }
 
   lifecycle {
     create_before_destroy = true
