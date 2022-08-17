@@ -24,20 +24,6 @@ data "aws_ami" "this" {
   }
 }
 
-data "aws_vpc" "this" {
-  filter {
-    name   = "tag:Name"
-    values = ["${var.environment}-vpc"]
-  }
-}
-
-data "aws_subnets" "this" {
-  filter {
-    name   = "tag:Name"
-    values = ["${var.environment}-vpc-public-${local.az}"]
-  }
-}
-
 data "aws_route53_zone" "this" {
   name         = var.route53_zone
   private_zone = false

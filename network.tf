@@ -1,6 +1,6 @@
 resource "aws_security_group" "this" {
   name        = var.name
-  vpc_id      = data.aws_vpc.this.id
+  vpc_id      = aws_vpc.this.id
   description = "Security group for EC2 instance ${var.name}"
 
   egress {
@@ -34,9 +34,36 @@ resource "aws_security_group" "this" {
   tags = local.default_tags
 }
 
+resource "aws_internet_gateway" "this" {
+  vpc_id = aws_vpc.this.id
+
+    tags = {
+        Name = "Bitminder Internet Gateway"
+    }
+}
+
+
+resource "aws_route_table" "this" {
+  vpc_id = aws_vpc.this.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.this.id
+  }
+
+  tags = {
+    Name = "Public Route Table"
+  }
+}
+
+resource "aws_route_table_association" "this" {
+  subnet_id      = aws_subnet.this.id
+  route_table_id = aws_route_table.this.id
+}
+
 resource "aws_network_interface" "this" {
   security_groups   = [aws_security_group.this.id]
-  subnet_id         = data.aws_subnets.this.ids[0]
+  subnet_id         = aws_subnet.this.id
   source_dest_check = false
   description       = "ENI for EC2 instance ${var.name}"
   tags              = local.default_tags

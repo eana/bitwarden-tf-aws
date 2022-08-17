@@ -47,7 +47,7 @@ resource "aws_autoscaling_group" "this" {
   name                = var.name
   min_size            = 1
   max_size            = 1
-  vpc_zone_identifier = ["subnet-0f08f5059a3ca78fc"]
+  vpc_zone_identifier = [aws_subnet.this.id]
 
   mixed_instances_policy {
     instances_distribution {
