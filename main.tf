@@ -49,10 +49,12 @@ resource "aws_autoscaling_group" "this" {
   max_size            = 1
   vpc_zone_identifier = ["subnet-0f08f5059a3ca78fc"]
 
+  # For spot may need service link role defined aws iam create-service-linked-role --aws-service-name spot.amazonaws.com
+  # Then add to KMS key policy
   mixed_instances_policy {
     instances_distribution {
-      on_demand_base_capacity                  = 1
-      on_demand_percentage_above_base_capacity = 100
+      on_demand_base_capacity                  = 0
+      on_demand_percentage_above_base_capacity = 0
     }
     launch_template {
       launch_template_specification {
