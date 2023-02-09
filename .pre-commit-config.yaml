@@ -5,8 +5,6 @@ repos:
       - id: terraform_fmt
       - id: terraform_tflint
       - id: terraform_docs
-      #- id: terraform_tfsec
-      #  files: ^((?!\.terraform).)*$
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0
     hooks:
