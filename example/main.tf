@@ -4,14 +4,15 @@ provider "aws" {
 
 terraform {
   required_version = ">= 0.13.1"
+
+  required_providers {
+    aws   = ">= 3.56.0"
+    local = ">= 1.4"
+  }
 }
 
 data "local_file" "this" {
   filename = "${path.module}/env.enc"
-}
-
-data "aws_kms_key" "this" {
-  key_id = "alias/bitwarden-sops-encryption-key-prod"
 }
 
 module "bitwarden" {

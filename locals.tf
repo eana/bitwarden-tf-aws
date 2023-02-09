@@ -1,6 +1,5 @@
 locals {
-  region = "eu-west-1"
-  az     = "eu-west-1a"
+  az = "eu-west-1a"
 
   default_tags = {
     Name       = var.name

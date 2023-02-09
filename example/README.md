@@ -51,25 +51,25 @@ Note that this example may create resources which can cost money). Run
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.13.1 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 3.56.0 |
+| <a name="requirement_local"></a> [local](#requirement\_local) | >= 1.4 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | n/a |
-| <a name="provider_local"></a> [local](#provider\_local) | n/a |
+| <a name="provider_local"></a> [local](#provider\_local) | >= 1.4 |
 
 ## Modules
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_bitwarden"></a> [bitwarden](#module\_bitwarden) | ../ |  |
+| <a name="module_bitwarden"></a> [bitwarden](#module\_bitwarden) | ../ | n/a |
 
 ## Resources
 
 | Name | Type |
 |------|------|
-| [aws_kms_key.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/kms_key) | data source |
 | [local_file.this](https://registry.terraform.io/providers/hashicorp/local/latest/docs/data-sources/file) | data source |
 
 ## Inputs
