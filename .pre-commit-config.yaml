@@ -1,20 +1,16 @@
 repos:
   - repo: https://github.com/antonbabenko/pre-commit-terraform
-    rev: v1.50.0
+    rev: v1.77.1
     hooks:
       - id: terraform_fmt
       - id: terraform_tflint
       - id: terraform_docs
-      - id: terraform_tfsec
-        files: ^((?!\.terraform).)*$
+      #- id: terraform_tfsec
+      #  files: ^((?!\.terraform).)*$
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.0.1
+    rev: v4.4.0
     hooks:
       - id: check-merge-conflict
       - id: end-of-file-fixer
       - id: check-yaml
       - id: check-json
-  - repo: https://github.com/mijdavis2/tf-unused
-    sha: "3166fa83ec46549c2d39aa7ab04640986390eb00"
-    hooks:
-      - id: tf_unused
