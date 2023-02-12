@@ -1,0 +1,66 @@
+---
+version: 2.1
+
+executors:
+  python:
+    docker:
+      - image: cimg/python:3.11.1
+
+jobs:
+  pre-commit:
+    executor: python
+    resource_class: small
+    steps:
+      - checkout
+      - run:
+          name: Combine precommit config and python versions for caching
+          command: |
+            cat .pre-commit-config.yaml | tee pre-commit-deps.txt
+            python -VV | tee -a pre-commit-deps.txt
+            pip freeze | tee -a pre-commit-deps.txt
+      - restore_cache:
+          keys:
+          - v1-precommit-deps-{{ checksum "pre-commit-deps.txt" }}
+
+      - run:
+          name: Install dependencies
+          command: |
+            mkdir -vp ~/.cache/downloads
+            # terraform
+            wget -c https://releases.hashicorp.com/terraform/1.3.7/terraform_1.3.7_linux_amd64.zip -O ~/.cache/downloads/terraform_1.3.7_linux_amd64.zip
+            sudo unzip ~/.cache/downloads/terraform_1.3.7_linux_amd64.zip -d /usr/local/bin/
+            # terraform-docs
+            wget -c https://github.com/terraform-docs/terraform-docs/releases/download/v0.16.0/terraform-docs-v0.16.0-$(uname)-amd64.tar.gz -O ~/.cache/downloads/terraform-docs.tar.gz
+            sudo tar -xzf ~/.cache/downloads/terraform-docs.tar.gz --directory /usr/local/bin/
+            # tflint
+            wget -c https://github.com/terraform-linters/tflint/releases/download/v0.44.1/tflint_linux_amd64.zip -O ~/.cache/downloads/terraform-docs.tar.gz
+            curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | sudo bash
+
+      - run:
+          name: Install pre-commit
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            pip install --upgrade pip
+            pip install --upgrade setuptools
+            pip install pre-commit
+            # Install the hooks now so that they'll be cached
+            pre-commit install-hooks
+
+      - save_cache:
+          paths:
+            - ~/.cache/pre-commit
+            - ./venv
+          key: v1-precommit-deps-{{ checksum "pre-commit-deps.txt" }}
+
+      - run:
+          name: Check code style using pre-commit
+          command: |
+            . venv/bin/activate
+            pre-commit run --show-diff-on-failure --all-files
+
+workflows:
+  version: 2
+  pre-commit:
+    jobs:
+      - pre-commit
