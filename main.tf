@@ -62,7 +62,7 @@ resource "aws_autoscaling_group" "this" {
         version            = "$Latest"
       }
       dynamic "override" {
-        for_each = ["t2.micro"]
+        for_each = ["t2.small"]
         content {
           instance_type = override.value
         }
