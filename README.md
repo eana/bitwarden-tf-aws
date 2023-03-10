@@ -37,6 +37,7 @@ bitwarden_rs) to AWS.
 - fail2ban and logrotate
 - Auto healing using an auto scaling group
 - Saving cost using a spot instance
+- By default, it uses `t2.micro` and `t2.small` as instances, and it launches the cheapest one
 - Fixed source IP address by reattaching ENI
 - Encrypted secrets using [mozilla/sops](https://github.com/mozilla/sops)
 
@@ -117,13 +118,14 @@ data "aws_kms_key" "this" {
 }
 
 module "bitwarden" {
-  source       = "../"
-  name         = "bitwarden"
-  domain       = "bitwarden.example.org"
-  environment  = "prod"
-  route53_zone = "example.org."
-  ssh_cidr     = ["212.178.73.60/32"]
-  env_file     = data.local_file.this.content
+  source         = "../"
+  name           = "bitwarden"
+  domain         = "bitwarden.example.org"
+  environment    = "prod"
+  route53_zone   = "example.org."
+  ssh_cidr       = ["212.178.73.60/32"]
+  env_file       = data.local_file.this.content
+  instance_types = ["t2.micro", "t2.small", "t2.medium", "t2.large"]
 }
 ```
 
@@ -215,6 +217,7 @@ No modules.
 | <a name="input_domain"></a> [domain](#input\_domain) | The domain name for the Bitwarden instance | `string` | n/a | yes |
 | <a name="input_env_file"></a> [env\_file](#input\_env\_file) | The name of the default docker-compose encrypted env file | `string` | n/a | yes |
 | <a name="input_environment"></a> [environment](#input\_environment) | The environment to deploy to | `string` | n/a | yes |
+| <a name="input_instance_types"></a> [instance\_types](#input\_instance\_types) | Instance types in the Launch Template. The first instance in the list will have the | `list(string)` | <pre>[<br>  "t2.micro",<br>  "t2.small"<br>]</pre> | no |
 | <a name="input_name"></a> [name](#input\_name) | Name to be used as identifier | `string` | `"bitwarden"` | no |
 | <a name="input_route53_zone"></a> [route53\_zone](#input\_route53\_zone) | The zone in which the DNS record will be created | `string` | n/a | yes |
 | <a name="input_ssh_cidr"></a> [ssh\_cidr](#input\_ssh\_cidr) | The IP ranges from where the SSH connections will be allowed | `list(any)` | `[]` | no |
