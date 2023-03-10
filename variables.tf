@@ -53,3 +53,9 @@ variable "env_file" {
   description = "The name of the default docker-compose encrypted env file"
   type        = string
 }
+
+variable "instance_types" {
+  description = "Instance types in the Launch Template. The first instance in the list will have the "
+  type        = list(string)
+  default     = ["t2.micro", "t2.small"]
+}
