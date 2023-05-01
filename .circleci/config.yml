@@ -7,7 +7,7 @@ executors:
       - image: cimg/python:3.11.3
 
 jobs:
-  pre-commit:
+  code-style:
     executor: python
     resource_class: small
     steps:
@@ -61,6 +61,6 @@ jobs:
 
 workflows:
   version: 2
-  pre-commit:
+  code-style:
     jobs:
-      - pre-commit
+      - code-style
