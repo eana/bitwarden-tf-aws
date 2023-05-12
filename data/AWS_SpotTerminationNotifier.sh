@@ -2,7 +2,7 @@
 # AWS Instance Termination Notice Handler
 # Based on: https://blog.fugue.co/2015-01-06-spot-termination-notices.html
 
-set -euo pipefail
+set +H -euo pipefail
 
 while true; do
     if [ -z "$(curl -Is http://169.254.169.254/latest/meta-data/spot/termination-time | head -1 | grep 404 | cut -d ' ' -f 2)" ]; then
