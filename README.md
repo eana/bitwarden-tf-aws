@@ -137,7 +137,7 @@ module "bitwarden" {
 3. ~~Implement a retry mechanism when attaching ENI and EBS~~
 4. ~~Detect if the EBS volume has been formatted or not~~
 5. ~~Add logrotate for Traefik logs~~
-6. Catch the spot instance termination event and trigger a backup
+6. ~~Catch the spot instance termination event and trigger a backup~~
 7. Verify that the application has properly launched by logging in as a dummy
    user
 
