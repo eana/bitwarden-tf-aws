@@ -81,6 +81,8 @@ function restore_backup {
 
     # Synchronize the backup content with the application directory
     echo -e "$YELLOW"Synchronize the backup content with the application directory..."$RESET"
+    sudo touch -f /home/ec2-user/bitwarden/restore.log
+    sudo chown ec2-user:ec2-user /home/ec2-user/bitwarden/restore.log
     rsync -av --delete "$backup_dir"/bitwarden/{bitwarden-data,mysql,traefik} /home/ec2-user/bitwarden --log-file=/home/ec2-user/bitwarden/restore.log > /dev/null 2>&1
 
     echo -e "$YELLOW"File transfer log: /home/ec2-user/bitwarden/restore.log"$RESET"
@@ -109,7 +111,9 @@ function main {
 
     local backup_date=$1
     local backup_dir=/tmp/bitwarden-backup-"$backup_date"
-    local temp_dir=$(mktemp -d)
+
+    local temp_dir
+    temp_dir=$(mktemp -d)
 
     echo -e "$YELLOW"Starting Sanity check."$RESET"
     if ! sanity_check; then
