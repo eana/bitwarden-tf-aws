@@ -52,8 +52,8 @@ sleep 10
 mkdir -p /home/ec2-user/bitwarden
 chown ec2-user:ec2-user /home/ec2-user/bitwarden
 retry 10 lsblk -f /dev/xvdf
-if ! lsblk -f /dev/xvdf | grep xvdf | grep -q ext4; then
-  echo "/dev/xvdf is not formatted. Formatting it..."
+if ! lsblk -f /dev/xvdf | grep -E "xvdf|nvme1n1" | grep -q ext4; then
+  echo "The EBS volume is not formatted. Formatting it..."
   mkfs.ext4 /dev/xvdf
 fi
 mount /dev/xvdf /home/ec2-user/bitwarden
