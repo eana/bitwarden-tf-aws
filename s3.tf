@@ -92,6 +92,7 @@ resource "aws_s3_object" "compose" {
   key                    = "bitwarden-docker-compose.yml"
   content                = file("${path.module}/data/docker-compose.yml") #tfsec:ignore:aws-iam-no-policy-wildcards tfsec:ignore:general-secrets-no-plaintext-exposure
   server_side_encryption = "AES256"
+  acl                    = "private"
 }
 
 resource "aws_s3_object" "backup" {
@@ -101,6 +102,7 @@ resource "aws_s3_object" "backup" {
     bucket = aws_s3_bucket.bucket.id
   })
   server_side_encryption = "AES256"
+  acl                    = "private"
 }
 
 resource "aws_s3_object" "restore" {
@@ -110,6 +112,7 @@ resource "aws_s3_object" "restore" {
     bucket = aws_s3_bucket.bucket.id
   })
   server_side_encryption = "AES256"
+  acl                    = "private"
 }
 
 resource "aws_s3_object" "AWS_SpotTerminationNotifier" {
@@ -117,6 +120,7 @@ resource "aws_s3_object" "AWS_SpotTerminationNotifier" {
   key                    = "bitwarden-AWS_SpotTerminationNotifier.sh"
   content                = file("${path.module}/data/AWS_SpotTerminationNotifier.sh")
   server_side_encryption = "AES256"
+  acl                    = "private"
 }
 
 resource "aws_s3_object" "env" {
@@ -124,6 +128,7 @@ resource "aws_s3_object" "env" {
   key                    = "bitwarden-env"
   content                = var.env_file
   server_side_encryption = "AES256"
+  acl                    = "private"
 }
 
 resource "aws_s3_object" "bitwarden-logrotate" {
@@ -131,6 +136,7 @@ resource "aws_s3_object" "bitwarden-logrotate" {
   key                    = "bitwarden-logrotate"
   content                = file("${path.module}/data/bitwarden-logrotate")
   server_side_encryption = "AES256"
+  acl                    = "private"
 }
 
 resource "aws_s3_object" "traefik-logrotate" {
@@ -138,6 +144,7 @@ resource "aws_s3_object" "traefik-logrotate" {
   key                    = "traefik-logrotate"
   content                = file("${path.module}/data/traefik-logrotate")
   server_side_encryption = "AES256"
+  acl                    = "private"
 }
 
 resource "aws_s3_object" "traefik-dynamic" {
@@ -145,6 +152,7 @@ resource "aws_s3_object" "traefik-dynamic" {
   key                    = "traefik-dynamic.yaml"
   content                = file("${path.module}/data/traefik-dynamic.yaml")
   server_side_encryption = "AES256"
+  acl                    = "private"
 }
 
 resource "aws_s3_object" "fail2ban_filter" {
@@ -152,6 +160,7 @@ resource "aws_s3_object" "fail2ban_filter" {
   key                    = "fail2ban/filter"
   content                = file("${path.module}/data/fail2ban/bitwarden-fail2ban-filter")
   server_side_encryption = "AES256"
+  acl                    = "private"
 }
 
 resource "aws_s3_object" "admin_fail2ban_filter" {
@@ -159,6 +168,7 @@ resource "aws_s3_object" "admin_fail2ban_filter" {
   key                    = "fail2ban/admin-filter"
   content                = file("${path.module}/data/fail2ban/bitwarden-admin-fail2ban-filter")
   server_side_encryption = "AES256"
+  acl                    = "private"
 }
 
 resource "aws_s3_object" "fail2ban_jail" {
@@ -166,6 +176,7 @@ resource "aws_s3_object" "fail2ban_jail" {
   key                    = "fail2ban/jail"
   content                = file("${path.module}/data/fail2ban/bitwarden-fail2ban-jail")
   server_side_encryption = "AES256"
+  acl                    = "private"
 }
 
 resource "aws_s3_object" "admin_fail2ban_jail" {
@@ -173,6 +184,7 @@ resource "aws_s3_object" "admin_fail2ban_jail" {
   key                    = "fail2ban/admin-jail"
   content                = file("${path.module}/data/fail2ban/bitwarden-admin-fail2ban-jail")
   server_side_encryption = "AES256"
+  acl                    = "private"
 }
 
 resource "aws_s3_bucket_public_access_block" "bucket" {
