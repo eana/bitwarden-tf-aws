@@ -1,3 +1,4 @@
+### BITWARDEN ###
 # AMI of the latest Amazon Linux 2
 data "aws_ami" "this" {
   most_recent = true
@@ -25,6 +26,8 @@ data "aws_ami" "this" {
 }
 
 data "aws_vpc" "this" {
+  count = var.enable_vpc ? 0 : 1
+
   filter {
     name   = "tag:Name"
     values = ["${var.environment}-vpc"]
@@ -32,6 +35,8 @@ data "aws_vpc" "this" {
 }
 
 data "aws_subnets" "this" {
+  count = var.enable_vpc ? 0 : 1
+
   filter {
     name   = "tag:Name"
     values = ["${var.environment}-vpc-public-${local.az}"]
@@ -39,6 +44,7 @@ data "aws_subnets" "this" {
 }
 
 data "aws_route53_zone" "this" {
+  count        = var.enable_route53 ? 1 : 0
   name         = var.route53_zone
   private_zone = false
 }

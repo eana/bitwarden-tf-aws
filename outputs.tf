@@ -1,3 +1,20 @@
+### VPC ###
+output "vpc_azs" {
+  value       = var.enable_vpc ? module.vpc.azs : "VPC feature not enabled"
+  description = "The list of availability zones created."
+}
+
+output "vpc_public_subnets" {
+  value       = var.enable_vpc ? module.vpc.public_subnets : "VPC feature not enabled"
+  description = "List of IDs of public subnets."
+}
+
+output "vpc_private_subnets" {
+  value       = var.enable_vpc ? module.vpc.private_subnets : "VPC feature not enabled"
+  description = "List of IDs of private subnets."
+}
+
+### BITWARDEN ###
 output "volume_id" {
   description = "The volume ID"
   value       = aws_ebs_volume.this.id
@@ -30,5 +47,5 @@ output "s3_resources" {
 
 output "url" {
   description = "The URL where the Bitwarden Instance can be accessed"
-  value       = "https://${aws_route53_record.this.name}"
+  value       = var.enable_route53 ? "https://${aws_route53_record.this[0].name}" : "https://${aws_eip.this.public_ip}"
 }

@@ -1,6 +1,26 @@
+module "vpc" {
+  count = var.enable_vpc ? 1 : 0
+
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "4.0.2"
+
+  name = "${terraform.workspace}-vpc"
+  cidr = var.cidr[terraform.workspace]
+
+  azs             = var.azs[terraform.workspace]
+  public_subnets  = var.public_subnets[terraform.workspace]
+  private_subnets = var.private_subnets[terraform.workspace]
+
+  enable_nat_gateway     = true
+  single_nat_gateway     = true
+  one_nat_gateway_per_az = false
+
+  enable_dns_hostnames = true
+}
+
 resource "aws_security_group" "this" {
   name        = var.name
-  vpc_id      = data.aws_vpc.this.id
+  vpc_id      = var.enable_vpc ? module.vpc.vpc_id : data.aws_vpc.this[0].id
   description = "Security group for EC2 instance ${var.name}"
 
   egress {
@@ -36,7 +56,7 @@ resource "aws_security_group" "this" {
 
 resource "aws_network_interface" "this" {
   security_groups   = [aws_security_group.this.id]
-  subnet_id         = data.aws_subnets.this.ids[0]
+  subnet_id         = var.enable_vpc ? module.vpc.public_subnets[0] : data.aws_subnets.this[0].ids[0]
   source_dest_check = false
   description       = "ENI for EC2 instance ${var.name}"
   tags              = local.default_tags
@@ -48,7 +68,9 @@ resource "aws_eip" "this" {
 }
 
 resource "aws_route53_record" "this" {
-  zone_id = data.aws_route53_zone.this.zone_id
+  count = var.enable_route53 ? 1 : 0
+
+  zone_id = data.aws_route53_zone.this[0].zone_id
   name    = var.domain
   type    = "A"
   ttl     = "300"

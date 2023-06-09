@@ -16,11 +16,13 @@ data "local_file" "this" {
 }
 
 module "bitwarden" {
-  source       = "../"
-  name         = "bitwarden"
-  domain       = "bitwarden.example.org"
-  environment  = "prod"
-  route53_zone = "example.org."
-  ssh_cidr     = ["212.178.73.60/32"]
-  env_file     = data.local_file.this.content
+  source         = "../"
+  name           = "bitwarden"
+  domain         = "bitwarden.example.org"
+  environment    = "prod"
+  route53_zone   = "example.org."
+  ssh_cidr       = ["212.178.73.60/32"]
+  env_file       = data.local_file.this.content
+  enable_route53 = true
+  enable_vpc     = true
 }

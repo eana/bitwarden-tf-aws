@@ -40,6 +40,7 @@ bitwarden_rs) to AWS.
 - By default, it uses `t2.micro` and `t2.small` as instances, and it launches the cheapest one
 - Fixed source IP address by reattaching ENI
 - Encrypted secrets using [mozilla/sops](https://github.com/mozilla/sops)
+- If the user needs, it can create all required network resources (VPC, subnets, etc.)
 
 ## How it works
 
@@ -140,6 +141,7 @@ module "bitwarden" {
 6. ~~Catch the spot instance termination event and trigger a backup~~
 7. Verify that the application has properly launched by logging in as a dummy
    user
+8. ~~Conditional VPC creation~~
 
 ## Contributions
 
@@ -162,7 +164,9 @@ This is an open source software. Feel free to open issues and pull requests.
 
 ## Modules
 
-No modules.
+| Name | Source | Version |
+|------|--------|---------|
+| <a name="module_vpc"></a> [vpc](#module\_vpc) | terraform-aws-modules/vpc/aws | 4.0.2 |
 
 ## Resources
 
@@ -215,13 +219,19 @@ No modules.
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_additional_tags"></a> [additional\_tags](#input\_additional\_tags) | Additional tags to apply to resources created with this module | `map(string)` | `{}` | no |
+| <a name="input_azs"></a> [azs](#input\_azs) | List of availability zones/ | `map(list(string))` | <pre>{<br>  "prod": [<br>    "eu-west-1a",<br>    "eu-west-1b",<br>    "eu-west-1c"<br>  ],<br>  "test": [<br>    "eu-west-1a",<br>    "eu-west-1b",<br>    "eu-west-1c"<br>  ]<br>}</pre> | no |
 | <a name="input_backup_schedule"></a> [backup\_schedule](#input\_backup\_schedule) | A cron expression to describe how often your data is backed up | `string` | `"0 9 * * *"` | no |
 | <a name="input_bucket_version_expiration_days"></a> [bucket\_version\_expiration\_days](#input\_bucket\_version\_expiration\_days) | Specifies when noncurrent object versions expire | `number` | `30` | no |
+| <a name="input_cidr"></a> [cidr](#input\_cidr) | The CIDR block for the VPC. | `map(string)` | <pre>{<br>  "prod": "10.100.0.0/16",<br>  "test": "10.101.0.0/16"<br>}</pre> | no |
 | <a name="input_domain"></a> [domain](#input\_domain) | The domain name for the Bitwarden instance | `string` | n/a | yes |
+| <a name="input_enable_route53"></a> [enable\_route53](#input\_enable\_route53) | Should be true if you want to create the DNS record | `bool` | `false` | no |
+| <a name="input_enable_vpc"></a> [enable\_vpc](#input\_enable\_vpc) | Should be true if you want to provision a VPC and the other network resources | `bool` | `false` | no |
 | <a name="input_env_file"></a> [env\_file](#input\_env\_file) | The name of the default docker-compose encrypted env file | `string` | n/a | yes |
 | <a name="input_environment"></a> [environment](#input\_environment) | The environment to deploy to | `string` | n/a | yes |
 | <a name="input_instance_types"></a> [instance\_types](#input\_instance\_types) | Instance types in the Launch Template. The first instance in the list will have the | `list(string)` | <pre>[<br>  "t2.micro",<br>  "t2.small"<br>]</pre> | no |
 | <a name="input_name"></a> [name](#input\_name) | Name to be used as identifier | `string` | `"bitwarden"` | no |
+| <a name="input_private_subnets"></a> [private\_subnets](#input\_private\_subnets) | List of cidr\_blocks of private subnets. | `map(list(string))` | <pre>{<br>  "prod": [<br>    "10.100.96.0/20",<br>    "10.100.112.0/20",<br>    "10.100.128.0/20"<br>  ],<br>  "test": [<br>    "10.101.96.0/20",<br>    "10.101.112.0/20",<br>    "10.101.128.0/20"<br>  ]<br>}</pre> | no |
+| <a name="input_public_subnets"></a> [public\_subnets](#input\_public\_subnets) | List of cidr\_blocks of public subnets. | `map(list(string))` | <pre>{<br>  "prod": [<br>    "10.100.0.0/20",<br>    "10.100.16.0/20",<br>    "10.100.32.0/20"<br>  ],<br>  "test": [<br>    "10.101.0.0/20",<br>    "10.101.16.0/20",<br>    "10.101.32.0/20"<br>  ]<br>}</pre> | no |
 | <a name="input_route53_zone"></a> [route53\_zone](#input\_route53\_zone) | The zone in which the DNS record will be created | `string` | n/a | yes |
 | <a name="input_ssh_cidr"></a> [ssh\_cidr](#input\_ssh\_cidr) | The IP ranges from where the SSH connections will be allowed | `list(any)` | `[]` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Tags applied to resources created with this module | `map(any)` | `{}` | no |
@@ -237,4 +247,7 @@ No modules.
 | <a name="output_sg_id"></a> [sg\_id](#output\_sg\_id) | ID of the security group |
 | <a name="output_url"></a> [url](#output\_url) | The URL where the Bitwarden Instance can be accessed |
 | <a name="output_volume_id"></a> [volume\_id](#output\_volume\_id) | The volume ID |
+| <a name="output_vpc_azs"></a> [vpc\_azs](#output\_vpc\_azs) | The list of availability zones created. |
+| <a name="output_vpc_private_subnets"></a> [vpc\_private\_subnets](#output\_vpc\_private\_subnets) | List of IDs of private subnets. |
+| <a name="output_vpc_public_subnets"></a> [vpc\_public\_subnets](#output\_vpc\_public\_subnets) | List of IDs of public subnets. |
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
