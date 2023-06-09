@@ -2,7 +2,7 @@ module "vpc" {
   count = var.enable_vpc ? 1 : 0
 
   source  = "terraform-aws-modules/vpc/aws"
-  version = "4.0.2"
+  version = "5.0.0"
 
   name = "${terraform.workspace}-vpc"
   cidr = var.cidr[terraform.workspace]
