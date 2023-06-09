@@ -1,3 +1,18 @@
+output "vpc_azs" {
+  value       = module.vpc.azs
+  description = "The list of availability zones created."
+}
+
+output "vpc_public_subnets" {
+  value       = module.vpc.public_subnets
+  description = "List of IDs of public subnets."
+}
+
+output "vpc_private_subnets" {
+  value       = module.vpc.private_subnets
+  description = "List of IDs of private subnets."
+}
+
 output "volume_id" {
   description = "The volume ID"
   value       = module.bitwarden.volume_id

@@ -2,8 +2,9 @@
 
 # Bitwarden in AWS
 
-The configuration in this directory creates a Bitwarden instance by calling the
-`bitwarden-aws-tf` module.
+The Terraform files in this directory create a VPC and a Bitwarden instance, as
+well as all the necessary network components, by invoking the
+`terraform-aws-modules/vpc/aws` and `bitwarden-aws-tf` modules.
 
 ## How to use this
 
@@ -42,7 +43,7 @@ terraform plan
 terraform apply
 ```
 
-Note that this example may create resources which can cost money). Run
+Note that this example may create resources which will cost money. Run
 `terraform destroy` when you don't need these resources.
 
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
@@ -65,6 +66,7 @@ Note that this example may create resources which can cost money). Run
 | Name | Source | Version |
 |------|--------|---------|
 | <a name="module_bitwarden"></a> [bitwarden](#module\_bitwarden) | ../ | n/a |
+| <a name="module_vpc"></a> [vpc](#module\_vpc) | terraform-aws-modules/vpc/aws | 5.0.0 |
 
 ## Resources
 
@@ -74,7 +76,13 @@ Note that this example may create resources which can cost money). Run
 
 ## Inputs
 
-No inputs.
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_azs"></a> [azs](#input\_azs) | List of availability zones/ | `map(list(string))` | <pre>{<br>  "prod": [<br>    "eu-west-1a",<br>    "eu-west-1b",<br>    "eu-west-1c"<br>  ],<br>  "test": [<br>    "eu-west-1a",<br>    "eu-west-1b",<br>    "eu-west-1c"<br>  ]<br>}</pre> | no |
+| <a name="input_cidr"></a> [cidr](#input\_cidr) | The CIDR block for the VPC. | `map(string)` | <pre>{<br>  "prod": "10.100.0.0/16",<br>  "test": "10.101.0.0/16"<br>}</pre> | no |
+| <a name="input_environment"></a> [environment](#input\_environment) | The environment to deploy the app in. | `string` | `"prod"` | no |
+| <a name="input_private_subnets"></a> [private\_subnets](#input\_private\_subnets) | List of cidr\_blocks of private subnets. | `map(list(string))` | <pre>{<br>  "prod": [<br>    "10.100.96.0/20",<br>    "10.100.112.0/20",<br>    "10.100.128.0/20"<br>  ],<br>  "test": [<br>    "10.101.96.0/20",<br>    "10.101.112.0/20",<br>    "10.101.128.0/20"<br>  ]<br>}</pre> | no |
+| <a name="input_public_subnets"></a> [public\_subnets](#input\_public\_subnets) | List of cidr\_blocks of public subnets. | `map(list(string))` | <pre>{<br>  "prod": [<br>    "10.100.0.0/20",<br>    "10.100.16.0/20",<br>    "10.100.32.0/20"<br>  ],<br>  "test": [<br>    "10.101.0.0/20",<br>    "10.101.16.0/20",<br>    "10.101.32.0/20"<br>  ]<br>}</pre> | no |
 
 ## Outputs
 
@@ -87,4 +95,7 @@ No inputs.
 | <a name="output_sg_id"></a> [sg\_id](#output\_sg\_id) | ID of the security group |
 | <a name="output_url"></a> [url](#output\_url) | The URL where the Bitwarden Instance can be accessed |
 | <a name="output_volume_id"></a> [volume\_id](#output\_volume\_id) | The volume ID |
+| <a name="output_vpc_azs"></a> [vpc\_azs](#output\_vpc\_azs) | The list of availability zones created. |
+| <a name="output_vpc_private_subnets"></a> [vpc\_private\_subnets](#output\_vpc\_private\_subnets) | List of IDs of private subnets. |
+| <a name="output_vpc_public_subnets"></a> [vpc\_public\_subnets](#output\_vpc\_public\_subnets) | List of IDs of public subnets. |
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->

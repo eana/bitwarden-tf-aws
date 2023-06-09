@@ -15,12 +15,32 @@ data "local_file" "this" {
   filename = "${path.module}/env.enc"
 }
 
+module "vpc" {
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "5.0.0"
+
+  name = "${var.environment}-vpc"
+  cidr = var.cidr[var.environment]
+
+  azs             = var.azs[var.environment]
+  public_subnets  = var.public_subnets[var.environment]
+  private_subnets = var.private_subnets[var.environment]
+
+  enable_nat_gateway     = true
+  single_nat_gateway     = true
+  one_nat_gateway_per_az = false
+
+  enable_dns_hostnames = true
+}
+
 module "bitwarden" {
   source       = "../"
   name         = "bitwarden"
   domain       = "bitwarden.example.org"
-  environment  = "prod"
+  environment  = var.environment
   route53_zone = "example.org."
   ssh_cidr     = ["212.178.73.60/32"]
   env_file     = data.local_file.this.content
+
+  depends_on = [module.vpc]
 }
