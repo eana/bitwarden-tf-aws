@@ -54,7 +54,7 @@ services:
       - dockerproxy
     restart: unless-stopped
   mysql:
-    image: mariadb:10.11.4
+    image: mariadb:11.0.2
     container_name: mysql
     user: 1000:1000
     restart: unless-stopped
