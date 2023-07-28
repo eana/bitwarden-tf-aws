@@ -66,7 +66,7 @@ Note that this example may create resources which will cost money. Run
 | Name | Source | Version |
 |------|--------|---------|
 | <a name="module_bitwarden"></a> [bitwarden](#module\_bitwarden) | ../ | n/a |
-| <a name="module_vpc"></a> [vpc](#module\_vpc) | terraform-aws-modules/vpc/aws | 5.1.0 |
+| <a name="module_vpc"></a> [vpc](#module\_vpc) | terraform-aws-modules/vpc/aws | 5.1.1 |
 
 ## Resources
 
