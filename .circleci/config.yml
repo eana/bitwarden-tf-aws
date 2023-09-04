@@ -4,7 +4,7 @@ version: 2.1
 executors:
   python:
     docker:
-      - image: cimg/python:3.11.4
+      - image: cimg/python:3.11.5@sha256:5eb03f6b4a6dbc1f1abe9c51e6b7cff571ea0ff69ff793e83b7b633efaaa66e9
 
 jobs:
   code-style:
