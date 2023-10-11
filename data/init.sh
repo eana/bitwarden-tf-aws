@@ -75,7 +75,7 @@ chmod a+x /usr/local/bin/docker-compose
 
 # Install mozilla sops
 # renovate: datasource=github-releases depName=mozilla/sops versioning=semver
-export ENV_SOPS_VERSION="v3.8.0"
+export ENV_SOPS_VERSION="v3.8.1"
 curl -L "https://github.com/mozilla/sops/releases/download/$ENV_SOPS_VERSION/sops-$(echo $ENV_SOPS_VERSION | cut -c2-).x86_64.rpm" -o "/tmp/sops-$(echo $ENV_SOPS_VERSION | cut -c2-).x86_64.rpm"
 rpm -i "/tmp/sops-$(echo $ENV_SOPS_VERSION | cut -c2-).x86_64.rpm"
 rm -f "/tmp/sops-$(echo $ENV_SOPS_VERSION | cut -c2-).x86_64.rpm"
