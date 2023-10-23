@@ -4,24 +4,25 @@ Terraform module for deploying a cheap yet stable
 [vaultwarden](https://github.com/dani-garcia/vaultwarden) (formerly
 bitwarden_rs) to AWS.
 
-<!-- vim-markdown-toc GFM -->
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-* [Prerequisites](#prerequisites)
-* [Features](#features)
-* [How it works](#how-it-works)
-* [Usage](#usage)
-    * [Secrets](#secrets)
-    * [Terraform](#terraform)
-* [TODO](#todo)
-* [Contributions](#contributions)
-* [Requirements](#requirements)
-* [Providers](#providers)
-* [Modules](#modules)
-* [Resources](#resources)
-* [Inputs](#inputs)
-* [Outputs](#outputs)
+- [Prerequisites](#prerequisites)
+- [Features](#features)
+- [How it works](#how-it-works)
+- [Usage](#usage)
+  - [Secrets](#secrets)
+  - [Terraform](#terraform)
+- [TODO](#todo)
+- [Contributions](#contributions)
+- [Requirements](#requirements)
+- [Providers](#providers)
+- [Modules](#modules)
+- [Resources](#resources)
+- [Inputs](#inputs)
+- [Outputs](#outputs)
 
-<!-- vim-markdown-toc -->
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Prerequisites
 
