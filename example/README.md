@@ -6,6 +6,19 @@ The Terraform files in this directory create a VPC and a Bitwarden instance, as
 well as all the necessary network components, by invoking the
 `terraform-aws-modules/vpc/aws` and `bitwarden-aws-tf` modules.
 
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
+- [How to use this](#how-to-use-this)
+- [Requirements](#requirements)
+- [Providers](#providers)
+- [Modules](#modules)
+- [Resources](#resources)
+- [Inputs](#inputs)
+- [Outputs](#outputs)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 ## How to use this
 
 1. Create a file called `env.enc` with the following content:
