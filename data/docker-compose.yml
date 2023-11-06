@@ -54,7 +54,7 @@ services:
       - dockerproxy
     restart: unless-stopped
   mysql:
-    image: mariadb:11.1.2@sha256:2403cc521634162f743b5179ff5b35520daf72df5d9e7e397192af685d9148fd
+    image: mariadb:11.1.2
     container_name: mysql
     user: 1000:1000
     restart: unless-stopped
@@ -68,7 +68,7 @@ services:
       MARIADB_PASSWORD: "${db_user_password}"
       MARIADB_ROOT_PASSWORD: "${db_root_password}"
   bitwarden:
-    image: vaultwarden/server:1.30.0@sha256:27638a2ae977d66d99891c06562ff9ba78a60869d2e5a94cf2953f1d03fde12f
+    image: vaultwarden/server:1.30.0
     container_name: "bitwarden"
     user: 1000:1000
     volumes:
@@ -91,29 +91,18 @@ services:
       DATABASE_URL: "mysql://${db_user}:${db_user_password}@mysql/bitwarden"
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=default"
       - "traefik.http.middlewares.redirect-https.redirectScheme.scheme=https"
       - "traefik.http.middlewares.redirect-https.redirectScheme.permanent=true"
-      - "traefik.http.routers.bitwarden-ui-https.rule=Host(`${domain}`)"
-      - "traefik.http.routers.bitwarden-ui-https.entrypoints=websecure"
-      - "traefik.http.routers.bitwarden-ui-https.tls.certresolver=myresolver"
-      - "traefik.http.routers.bitwarden-ui-https.tls=true"
-      - "traefik.http.routers.bitwarden-ui-https.service=bitwarden-ui"
-      - "traefik.http.routers.bitwarden-ui-https.middlewares=security-headers"
-      - "traefik.http.routers.bitwarden-ui-https.tls.options=default"
-      - "traefik.http.routers.bitwarden-ui-http.rule=Host(`${domain}`)"
-      - "traefik.http.routers.bitwarden-ui-http.entrypoints=web"
-      - "traefik.http.routers.bitwarden-ui-http.middlewares=redirect-https"
-      - "traefik.http.routers.bitwarden-ui-http.service=bitwarden-ui"
-      - "traefik.http.services.bitwarden-ui.loadbalancer.server.port=8080"
-      - "traefik.http.routers.bitwarden-websocket-https.rule=Host(`${domain}`) && Path(`/notifications/hub`)"
-      - "traefik.http.routers.bitwarden-websocket-https.entrypoints=websecure"
-      - "traefik.http.routers.bitwarden-websocket-https.tls=true"
-      - "traefik.http.routers.bitwarden-websocket-https.service=bitwarden-websocket"
-      - "traefik.http.routers.bitwarden-websocket-http.rule=Host(`${domain}`) && Path(`/notifications/hub`)"
-      - "traefik.http.routers.bitwarden-websocket-http.entrypoints=web"
-      - "traefik.http.routers.bitwarden-websocket-http.middlewares=redirect-https"
-      - "traefik.http.routers.bitwarden-websocket-http.service=bitwarden-websocket"
-      - "traefik.http.services.bitwarden-websocket.loadbalancer.server.port=3012"
+      - "traefik.http.routers.bitwarden-https.rule=Host(`${domain}`)"
+      - "traefik.http.routers.bitwarden-https.entrypoints=websecure"
+      - "traefik.http.routers.bitwarden-https.tls=true"
+      - "traefik.http.routers.bitwarden-https.service=bitwarden"
+      - "traefik.http.routers.bitwarden-http.rule=Host(`${domain}`)"
+      - "traefik.http.routers.bitwarden-http.entrypoints=web"
+      - "traefik.http.routers.bitwarden-http.middlewares=redirect-https"
+      - "traefik.http.routers.bitwarden-http.service=bitwarden"
+      - "traefik.http.services.bitwarden.loadbalancer.server.port=8080"
     depends_on:
       - traefik
       - mysql
