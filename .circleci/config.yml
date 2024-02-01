@@ -4,7 +4,7 @@ version: 2.1
 executors:
   python:
     docker:
-      - image: cimg/python:3.12.1@sha256:f0fcca28a92ab27345aef1adb1da1a3a18a7ef2d93dd08802674662eb46ebb2b
+      - image: cimg/python:3.12.1
 
 jobs:
   code-style:
@@ -35,16 +35,19 @@ jobs:
             # tflint
             wget -c https://github.com/terraform-linters/tflint/releases/download/v0.44.1/tflint_linux_amd64.zip -O ~/.cache/downloads/terraform-docs.tar.gz
             curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | sudo bash
+            # checkov
+            pip install --upgrade pip
+            pip install --upgrade setuptools
+            python3 -m venv venv
+            . venv/bin/activate
+            pip install checkov
 
       - run:
-          name: Install pre-commit
+          name: Install checkov and pre-commit
           command: |
             python3 -m venv venv
             . venv/bin/activate
-            pip install --upgrade pip
-            pip install --upgrade setuptools
             pip install pre-commit
-            # Install the hooks now so that they'll be cached
             pre-commit install-hooks
 
       - save_cache:
