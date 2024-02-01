@@ -13,6 +13,11 @@ resource "aws_launch_template" "this" {
     delete_on_termination       = true
   }
 
+  metadata_options {
+    http_endpoint = "enabled"
+    http_tokens   = "required"
+  }
+
   user_data = base64encode(
     templatefile("${path.module}/data/init.sh", {
       eni_id                                 = aws_network_interface.this.id
@@ -47,7 +52,7 @@ resource "aws_autoscaling_group" "this" {
   name                = var.name
   min_size            = 1
   max_size            = 1
-  vpc_zone_identifier = ["subnet-0f08f5059a3ca78fc"]
+  vpc_zone_identifier = [data.aws_subnets.this.ids[0]]
 
   # For spot may need service link role defined aws iam create-service-linked-role --aws-service-name spot.amazonaws.com
   # Then add to KMS key policy
@@ -87,6 +92,9 @@ resource "aws_autoscaling_group" "this" {
 resource "aws_ebs_volume" "this" {
   availability_zone = local.az
   size              = 5
+  type              = "gp2"
+  encrypted         = true
+  final_snapshot    = true
 
   tags = merge(
     local.default_tags,

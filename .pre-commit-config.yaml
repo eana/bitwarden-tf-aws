@@ -5,6 +5,9 @@ repos:
       - id: terraform_fmt
       - id: terraform_tflint
       - id: terraform_docs
+      - id: terraform_checkov
+        args:
+          - --args=--config-file __GIT_WORKING_DIR__/.checkov.yml
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:
