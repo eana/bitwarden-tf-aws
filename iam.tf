@@ -25,9 +25,9 @@ EOF
 }
 
 resource "aws_iam_role_policy" "eni" {
-  role   = aws_iam_role.this.name
-  name   = "${var.name}-eni"
-  policy = <<EOF
+  role       = aws_iam_role.this.name
+  name       = "${var.name}-eni"
+  policy     = <<EOF
 {
     "Version": "2012-10-17",
     "Statement": [
@@ -36,11 +36,17 @@ resource "aws_iam_role_policy" "eni" {
             "Action": [
                 "ec2:AttachNetworkInterface"
             ],
-            "Resource": "*"
+            "Resource": "*",
+            "Condition": {
+                "StringEquals": {
+                    "ec2:ResourceTag/Name": "${var.name}"
+                }
+            }
         }
     ]
 }
 EOF
+  depends_on = [aws_network_interface.this]
 }
 
 resource "aws_iam_role_policy" "ebs" {

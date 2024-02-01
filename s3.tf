@@ -1,4 +1,3 @@
-#tfsec:ignore:AWS002
 resource "aws_s3_bucket" "bucket" {
   bucket = "${var.name}-bucket"
 
@@ -41,17 +40,21 @@ resource "aws_s3_bucket_lifecycle_configuration" "bucket" {
     id     = "noncurrent_version_expiration"
     status = "Enabled"
 
-    filter {
-      prefix = ""
-    }
-
     noncurrent_version_expiration {
       noncurrent_days = var.bucket_version_expiration_days
     }
   }
+
+  rule {
+    id     = "abort_incomplete_multipart_upload"
+    status = "Enabled"
+
+    abort_incomplete_multipart_upload {
+      days_after_initiation = ceil(var.bucket_version_expiration_days / 2)
+    }
+  }
 }
 
-#tfsec:ignore:AWS002
 resource "aws_s3_bucket" "resources" {
   bucket = "${var.name}-resources"
 
@@ -90,7 +93,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "resources" {
 resource "aws_s3_object" "compose" {
   bucket                 = aws_s3_bucket.resources.id
   key                    = "bitwarden-docker-compose.yml"
-  content                = file("${path.module}/data/docker-compose.yml") #tfsec:ignore:aws-iam-no-policy-wildcards tfsec:ignore:general-secrets-no-plaintext-exposure
+  content                = file("${path.module}/data/docker-compose.yml")
   server_side_encryption = "AES256"
   acl                    = "private"
 }
