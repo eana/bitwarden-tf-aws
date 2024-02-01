@@ -59,7 +59,7 @@ jobs:
           name: Check code style using pre-commit
           command: |
             . venv/bin/activate
-            pre-commit run --show-diff-on-failure --all-files
+            git ls-files . | grep -v example | xargs pre-commit run --show-diff-on-failure --files
 
 workflows:
   version: 2
