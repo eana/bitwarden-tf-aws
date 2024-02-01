@@ -25,9 +25,9 @@ EOF
 }
 
 resource "aws_iam_role_policy" "eni" {
-  role       = aws_iam_role.this.name
-  name       = "${var.name}-eni"
-  policy     = <<EOF
+  role   = aws_iam_role.this.name
+  name   = "${var.name}-eni"
+  policy = <<EOF
 {
     "Version": "2012-10-17",
     "Statement": [
@@ -46,7 +46,34 @@ resource "aws_iam_role_policy" "eni" {
     ]
 }
 EOF
-  depends_on = [aws_network_interface.this]
+}
+
+resource "aws_iam_role_policy" "spot" {
+  role = aws_iam_role.this.name
+  name = "${var.name}-spot"
+
+  policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": "ec2:DescribeSpotPriceHistory",
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": "ec2:DescribeInstances",
+            "Resource": "*",
+            "Condition": {
+                "StringEquals": {
+                    "ec2:ResourceTag/Name": "${var.name}"
+                }
+            }
+        }
+    ]
+}
+EOF
 }
 
 resource "aws_iam_role_policy" "ebs" {

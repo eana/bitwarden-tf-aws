@@ -126,6 +126,14 @@ resource "aws_s3_object" "AWS_SpotTerminationNotifier" {
   acl                    = "private"
 }
 
+resource "aws_s3_object" "AWS_SpotInstancePricing" {
+  bucket                 = aws_s3_bucket.resources.id
+  key                    = "bitwarden-AWS_SpotInstancePricing.py"
+  content                = file("${path.module}/data/AWS_SpotInstancePricing.py")
+  server_side_encryption = "AES256"
+  acl                    = "private"
+}
+
 resource "aws_s3_object" "env" {
   bucket                 = aws_s3_bucket.resources.id
   key                    = "bitwarden-env"

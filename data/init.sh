@@ -69,6 +69,12 @@ if ! lsblk -f /dev/xvdf | grep -E "xvdf|nvme1n1" | grep -q ext4; then
 fi
 mount /dev/xvdf /home/ec2-user/bitwarden
 
+# Upgrade python
+yum remove -y python3
+amazon-linux-extras install -y python3.8
+ln -s /usr/bin/python3.8 /usr/bin/python3
+ln -s /usr/bin/pip3.8 /usr/bin/pip3
+
 # Install docker
 yum update -y
 yum install -y docker
@@ -136,6 +142,11 @@ aws s3 cp "s3://${resources_bucket}/${traefik-logrotate_key}" /etc/logrotate.d/t
 aws s3 cp "s3://${resources_bucket}/${AWS_SpotTerminationNotifier_script_key}" /home/ec2-user/conf/scripts/AWS_SpotTerminationNotifier.sh
 chmod a+x /home/ec2-user/conf/scripts/AWS_SpotTerminationNotifier.sh
 screen -dm -S AWS_SpotTerminationNotifier /home/ec2-user/conf/scripts/AWS_SpotTerminationNotifier.sh
+
+# Add AWS EC2 Spot Instance Pricing Script
+aws s3 cp "s3://${resources_bucket}/${AWS_SpotInstancePricing_script_key}" /home/ec2-user/conf/scripts/AWS_SpotInstancePricing.py
+chmod a+x /home/ec2-user/conf/scripts/AWS_SpotInstancePricing.py
+pip3 install boto3 --no-color
 
 # Pull all the docker images
 docker-compose -f /home/ec2-user/conf/compose/docker-compose.yml pull -q
