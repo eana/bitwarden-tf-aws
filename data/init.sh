@@ -26,6 +26,17 @@ function retry {
   return 0
 }
 
+# Allocate 1G disk space to be used as memory with a swap file to prevent errors like:
+# Error downloading packages:
+# gobject-introspection-1.56.1-1.amzn2.x86_64: [Errno 5] [Errno 12] Cannot allocate memory
+dd if=/dev/zero of=/swapfile count=1024 bs=1MiB
+chmod 600 /swapfile
+mkswap /swapfile
+swapon /swapfile
+cat >> /etc/fstab << 'EOF'
+/swapfile none swap sw 0 0
+EOF
+
 # Attach the ENI
 instance_id="$(/opt/aws/bin/ec2-metadata -i | cut -d' ' -f2)"
 retry 10 aws ec2 attach-network-interface \
