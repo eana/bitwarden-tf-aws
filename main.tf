@@ -28,6 +28,7 @@ resource "aws_launch_template" "this" {
       backup_script_key                      = aws_s3_object.backup.key
       restore_script_key                     = aws_s3_object.restore.key
       AWS_SpotTerminationNotifier_script_key = aws_s3_object.AWS_SpotTerminationNotifier.key
+      AWS_SpotInstancePricing_script_key     = aws_s3_object.AWS_SpotInstancePricing.key
       backup_schedule                        = var.backup_schedule
       bitwarden_env_key                      = aws_s3_object.env.key
       bitwarden-logrotate_key                = aws_s3_object.bitwarden-logrotate.key
