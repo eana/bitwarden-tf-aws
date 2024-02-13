@@ -15,7 +15,7 @@ services:
       - internal
     restart: unless-stopped
   traefik:
-    image: "traefik:2.10.7"
+    image: "traefik:2.11.0"
     container_name: "traefik"
     user: 1000:1000
     labels:
@@ -54,7 +54,7 @@ services:
       - dockerproxy
     restart: unless-stopped
   mysql:
-    image: mariadb:11.2.2
+    image: mariadb:11.2.3
     container_name: mysql
     user: 1000:1000
     restart: unless-stopped
