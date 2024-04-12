@@ -15,7 +15,7 @@ services:
       - internal
     restart: unless-stopped
   traefik:
-    image: "traefik:2.11.1"
+    image: "traefik:2.11.2"
     container_name: "traefik"
     user: 1000:1000
     labels:
