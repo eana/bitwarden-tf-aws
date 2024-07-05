@@ -86,13 +86,13 @@ mkdir -p /home/ec2-user/conf/{compose,traefik,scripts}
 
 # Install docker-compose
 # renovate: datasource=github-releases depName=docker/compose versioning=semver
-export ENV_DOCKER_COMPOSE_VERSION="v2.27.0"
+export ENV_DOCKER_COMPOSE_VERSION="v2.28.1"
 curl -L "https://github.com/docker/compose/releases/download/$ENV_DOCKER_COMPOSE_VERSION/docker-compose-linux-x86_64" -o /usr/local/bin/docker-compose
 chmod a+x /usr/local/bin/docker-compose
 
 # Install mozilla sops
 # renovate: datasource=github-releases depName=mozilla/sops versioning=semver
-export ENV_SOPS_VERSION="v3.8.1"
+export ENV_SOPS_VERSION="v3.9.0"
 curl -L "https://github.com/mozilla/sops/releases/download/$ENV_SOPS_VERSION/sops-$(echo $ENV_SOPS_VERSION | cut -c2-).x86_64.rpm" -o "/tmp/sops-$(echo $ENV_SOPS_VERSION | cut -c2-).x86_64.rpm"
 rpm -i "/tmp/sops-$(echo $ENV_SOPS_VERSION | cut -c2-).x86_64.rpm"
 rm -f "/tmp/sops-$(echo $ENV_SOPS_VERSION | cut -c2-).x86_64.rpm"
