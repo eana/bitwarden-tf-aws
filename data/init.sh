@@ -92,10 +92,11 @@ chmod a+x /usr/local/bin/docker-compose
 
 # Install mozilla sops
 # renovate: datasource=github-releases depName=mozilla/sops versioning=semver
-export ENV_SOPS_VERSION="v3.9.0"
-curl -L "https://github.com/mozilla/sops/releases/download/$ENV_SOPS_VERSION/sops-$(echo $ENV_SOPS_VERSION | cut -c2-).x86_64.rpm" -o "/tmp/sops-$(echo $ENV_SOPS_VERSION | cut -c2-).x86_64.rpm"
-rpm -i "/tmp/sops-$(echo $ENV_SOPS_VERSION | cut -c2-).x86_64.rpm"
-rm -f "/tmp/sops-$(echo $ENV_SOPS_VERSION | cut -c2-).x86_64.rpm"
+export ENV_SOPS_VERSION="3.9.0"
+export ENV_SOPS_SUB_VERSION="1"
+curl -L "https://github.com/getsops/sops/releases/download/v$ENV_SOPS_VERSION/sops-$ENV_SOPS_VERSION-$ENV_SOPS_SUB_VERSION.x86_64.rpm" -o "/tmp/sops-$ENV_SOPS_VERSION.x86_64.rpm"
+rpm -i "/tmp/sops-$ENV_SOPS_VERSION.x86_64.rpm"
+rm -f "/tmp/sops-$ENV_SOPS_VERSION.x86_64.rpm"
 
 # Get the secrets
 aws s3 cp "s3://${resources_bucket}/${bitwarden_env_key}" /home/ec2-user/conf/compose/env.enc
