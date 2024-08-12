@@ -13,6 +13,14 @@ resource "aws_s3_bucket" "bucket" {
 resource "aws_s3_bucket_acl" "bucket" {
   bucket = aws_s3_bucket.bucket.id
   acl    = "private"
+  depends_on = [aws_s3_bucket_ownership_controls.bucket]
+}
+
+resource "aws_s3_bucket_ownership_controls" "bucket" {
+  bucket = aws_s3_bucket.bucket.id
+  rule {
+      object_ownership = "ObjectWriter"
+  }
 }
 
 resource "aws_s3_bucket_versioning" "bucket" {
@@ -70,6 +78,7 @@ resource "aws_s3_bucket" "resources" {
 resource "aws_s3_bucket_acl" "resources" {
   bucket = aws_s3_bucket.resources.id
   acl    = "private"
+  depends_on = [aws_s3_bucket_ownership_controls.resources]
 }
 
 resource "aws_s3_bucket_versioning" "resources" {
@@ -77,6 +86,13 @@ resource "aws_s3_bucket_versioning" "resources" {
 
   versioning_configuration {
     status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_ownership_controls" "resources" {
+  bucket = aws_s3_bucket.resources.id
+  rule {
+      object_ownership = "ObjectWriter"
   }
 }
 
