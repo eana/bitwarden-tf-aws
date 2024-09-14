@@ -2,7 +2,7 @@ version: "3.5"
 
 services:
   dockerproxy:
-    image: tecnativa/docker-socket-proxy:0.2.0
+    image: tecnativa/docker-socket-proxy:0.3.0
     container_name: dockerproxy
     ports:
       - 2375
@@ -54,7 +54,7 @@ services:
       - dockerproxy
     restart: unless-stopped
   mysql:
-    image: mariadb:11.4.2
+    image: mariadb:11.5.2
     container_name: mysql
     user: 1000:1000
     restart: unless-stopped

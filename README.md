@@ -146,7 +146,7 @@ module "bitwarden" {
 
 This is an open source software. Feel free to open issues and pull requests.
 
-<!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+<!-- BEGIN_TF_DOCS -->
 ## Requirements
 
 | Name | Version |
@@ -240,4 +240,4 @@ No modules.
 | <a name="output_sg_id"></a> [sg\_id](#output\_sg\_id) | ID of the security group |
 | <a name="output_url"></a> [url](#output\_url) | The URL where the Bitwarden Instance can be accessed |
 | <a name="output_volume_id"></a> [volume\_id](#output\_volume\_id) | The volume ID |
-<!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+<!-- END_TF_DOCS -->
