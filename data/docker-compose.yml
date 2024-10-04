@@ -68,7 +68,7 @@ services:
       MARIADB_PASSWORD: "${db_user_password}"
       MARIADB_ROOT_PASSWORD: "${db_root_password}"
   bitwarden:
-    image: vaultwarden/server:1.32.0
+    image: vaultwarden/server:1.32.1
     container_name: "bitwarden"
     user: 1000:1000
     volumes:
