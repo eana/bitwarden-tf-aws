@@ -15,7 +15,7 @@ services:
       - internal
     restart: unless-stopped
   traefik:
-    image: "traefik:v3.1.6"
+    image: "traefik:v3.2.0"
     container_name: "traefik"
     user: 1000:1000
     labels:
@@ -68,7 +68,7 @@ services:
       MARIADB_PASSWORD: "${db_user_password}"
       MARIADB_ROOT_PASSWORD: "${db_root_password}"
   bitwarden:
-    image: vaultwarden/server:1.32.2
+    image: vaultwarden/server:1.32.3
     container_name: "bitwarden"
     user: 1000:1000
     volumes:
