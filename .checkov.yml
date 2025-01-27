@@ -7,14 +7,15 @@ quiet: true
 summary-position: bottom
 
 skip-check:
-  - CKV_TF_1    # Ensure Terraform module sources use a commit hash -- pending https://github.com/hashicorp/terraform/issues/29867
-  - CKV_AWS_18  # Ensure the S3 bucket has access logging enabled -- works as designed, this is a low-cost project
-  - CKV_AWS_23  # Ensure every security groups rule has a description -- it actually does have one
-  - CKV_AWS_88  # EC2 instance should not have public IP -- works as designed, this is a low-cost project, we don't use a load balancer
+  - CKV_TF_1 # Ensure Terraform module sources use a commit hash -- pending https://github.com/hashicorp/terraform/issues/29867
+  - CKV_AWS_18 # Ensure the S3 bucket has access logging enabled -- works as designed, this is a low-cost project
+  - CKV_AWS_23 # Ensure every security groups rule has a description -- it actually does have one
+  - CKV_AWS_88 # EC2 instance should not have public IP -- works as designed, this is a low-cost project, we don't use a load balancer
   - CKV_AWS_144 # Ensure that S3 bucket has cross-region replication enabled -- works as designed, this is a low-cost project
   - CKV_AWS_145 # Ensure that S3 buckets are encrypted with KMS by default -- works as designed, this is a low-cost project
   - CKV_AWS_189 # Ensure EBS Volume is encrypted by KMS using a customer managed Key (CMK) -- works as designed, this is a low-cost project
   - CKV_AWS_315 # Ensure EC2 Auto Scaling groups use EC2 launch templates
+  - CKV_AWS_382 # "Ensure no security groups allow egress from 0.0.0.0:0 to port -1"
   - CKV2_AWS_19 # Ensure that all EIP addresses allocated to a VPC are attached to EC2 instances -- the EIP is attached to the network interface used by the bitwarden EC2 instance
   - CKV2_AWS_61 # We want to keep the files in the buckets for an indefinite period of time
   - CKV2_AWS_62 # Ensure S3 buckets should have event notifications enabled -- works as designed, this is a low-cost project
