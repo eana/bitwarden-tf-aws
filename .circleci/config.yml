@@ -4,7 +4,7 @@ version: 2.1
 executors:
   python:
     docker:
-      - image: cimg/python:3.12.7
+      - image: cimg/python:3.12.8
 
 jobs:
   code-style:
@@ -20,7 +20,7 @@ jobs:
             pip freeze | tee -a pre-commit-deps.txt
       - restore_cache:
           keys:
-          - v1-precommit-deps-{{ checksum "pre-commit-deps.txt" }}
+            - v1-precommit-deps-{{ checksum "pre-commit-deps.txt" }}
 
       - run:
           name: Install dependencies
@@ -33,7 +33,6 @@ jobs:
             wget -c https://github.com/terraform-docs/terraform-docs/releases/download/v0.17.0/terraform-docs-v0.17.0-$(uname)-amd64.tar.gz -O ~/.cache/downloads/terraform-docs.tar.gz
             sudo tar -xzf ~/.cache/downloads/terraform-docs.tar.gz --directory /usr/local/bin/
             # tflint
-            wget -c https://github.com/terraform-linters/tflint/releases/download/v0.44.1/tflint_linux_amd64.zip -O ~/.cache/downloads/terraform-docs.tar.gz
             curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | sudo bash
             # checkov
             pip install --upgrade pip
