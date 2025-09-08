@@ -2,7 +2,7 @@ version: "3.5"
 
 services:
   dockerproxy:
-    image: tecnativa/docker-socket-proxy:0.3.0
+    image: tecnativa/docker-socket-proxy:v0.4.1
     container_name: dockerproxy
     ports:
       - 2375
@@ -15,7 +15,7 @@ services:
       - internal
     restart: unless-stopped
   traefik:
-    image: "traefik:v3.5.0"
+    image: "traefik:v3.5.1"
     container_name: "traefik"
     user: 1000:1000
     labels:
