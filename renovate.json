@@ -1,10 +1,14 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["local>bolawell/renovate-config"],
+  "extends": [
+    "local>bolawell/renovate-config"
+  ],
   "customManagers": [
     {
       "customType": "regex",
-      "fileMatch": ["(^|/)init.sh$"],
+      "managerFilePatterns": [
+        "/(^|/)init.sh$/"
+      ],
       "matchStrings": [
         "#\\s*renovate:\\s*datasource=(?<datasource>.*?) depName=(?<depName>.*?)( versioning=(?<versioning>.*?))?\\sexport ENV_.*?_VERSION=\"?(?<currentValue>.*?)\"?\\s"
       ],
@@ -13,8 +17,12 @@
   ],
   "packageRules": [
     {
-      "matchDatasources": ["docker"],
-      "matchPackageNames": ["cimg/python"],
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchPackageNames": [
+        "cimg/python"
+      ],
       "allowedVersions": "/^3\\.12\\.\\d+?$/"
     }
   ]
