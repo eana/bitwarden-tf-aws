@@ -23,7 +23,7 @@ data "local_file" "this" {
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "6.4.0"
+  version = "6.5.0"
 
   name = "${var.environment}-vpc"
   cidr = var.cidr[var.environment]
