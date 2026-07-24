@@ -42,6 +42,10 @@ cat >/etc/amazon/ssm/amazon-ssm-agent.json <<SSM_CONFIG
 SSM_CONFIG
 systemctl restart amazon-ssm-agent || true
 
+# renovate: datasource=docker depName=vaultwarden/server versioning=docker
+ENV_VAULTWARDEN_VERSION="1.37.0"
+VAULTWARDEN_IMAGE="vaultwarden/server:$ENV_VAULTWARDEN_VERSION"
+
 # Cloudflared repo + install
 retry 3 curl -fsSL https://pkg.cloudflare.com/cloudflared.repo >/etc/yum.repos.d/cloudflared.repo
 dnf install -y cloudflared docker
@@ -54,7 +58,7 @@ retry 5 env AWS_USE_DUALSTACK_ENDPOINT=true aws ssm get-parameter --name "/${nam
 # Deploy-time config
 cat >/etc/vaultwarden/backup.env <<BACKUP_ENV
 R2_BUCKET=${r2_bucket_name}
-VAULTWARDEN_IMAGE=${vaultwarden_image}
+VAULTWARDEN_IMAGE=$VAULTWARDEN_IMAGE
 BACKUP_ENV
 
 # Write cloudflared config

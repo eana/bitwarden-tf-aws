@@ -80,9 +80,3 @@ variable "existing_subnet_ids" {
   type        = list(string)
   default     = []
 }
-
-variable "vaultwarden_image" {
-  description = "Vaultwarden Docker image -- pin to a specific tag to prevent breaking updates on spot replacement (e.g. vaultwarden/server:1.32.0)"
-  type        = string
-  default     = "vaultwarden/server:latest"
-}

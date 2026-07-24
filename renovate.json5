@@ -1,0 +1,48 @@
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  extends: [
+    ":enablePreCommit",
+    ":semanticCommits",
+    "config:recommended",
+    "helpers:pinGitHubActionDigests",
+    "schedule:weekdays",
+  ],
+  reviewers: ["@eana"],
+  labels: ["dependencies"],
+  timezone: "Etc/UTC",
+  platformAutomerge: true,
+  vulnerabilityAlerts: { enabled: true },
+  customManagers: [
+    {
+      customType: "regex",
+      managerFilePatterns: ["/(^|/)user-data.sh$/"],
+      matchStrings: [
+        "#\\s*renovate:\\s*datasource=(?<datasource>.*?) depName=(?<depName>.*?)( versioning=(?<versioning>.*?))?\\sexport ENV_.*?_VERSION=\"?(?<currentValue>.*?)\"?\\s",
+      ],
+      versioningTemplate: "{{#if versioning}}{{versioning}}{{else}}semver{{/if}}",
+    },
+  ],
+  packageRules: [
+    {
+      description: "Group all minor and patch updates",
+      groupName: "development (patch and minor) updates",
+      groupSlug: "dev-deps",
+      matchUpdateTypes: ["minor", "patch"],
+      matchPackageNames: ["*"],
+      automerge: true,
+    },
+    {
+      description: "Group GitHub Actions",
+      groupName: "GitHub Actions",
+      groupSlug: "github-actions",
+      matchManagers: ["github-actions"],
+      automerge: true,
+    },
+  ],
+  lockFileMaintenance: {
+    enabled: true,
+    extends: ["schedule:weekly"],
+    automerge: true,
+  },
+  nix: { enabled: true },
+}

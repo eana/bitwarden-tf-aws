@@ -161,7 +161,6 @@ resource "aws_launch_template" "this" {
     r2_config_script      = file("${path.module}/data/r2-config.sh")
     ebs_volume_id         = aws_ebs_volume.this.id
     r2_bucket_name        = cloudflare_r2_bucket.backups.name
-    vaultwarden_image     = var.vaultwarden_image
   }))
 
   metadata_options {
