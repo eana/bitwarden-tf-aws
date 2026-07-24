@@ -1,0 +1,27 @@
+User -> Cloudflare DNS: HTTPS (or HTTP redirect 301)
+Cloudflare DNS -> Cloudflare Tunnel: CNAME\nvaultwarden.example.com\n*.vaultwarden.example.com
+User -> Cloudflare Tunnel: SSH via Access (IP-restricted)
+User -> AWS SSM: SSH via Session Manager (IAM auth)
+
+VPC: {
+  Public subnet\nIPv6 Only: {
+    ASG: {
+      EC2 instance: {
+        cloudflared
+        vaultwarden
+        SSM agent
+        spot handler
+      }
+    }
+    EBS volume: /data {
+      SQLite: vaultwarden database
+    }
+  }
+}
+
+VPC.Public subnet\nIPv6 Only.ASG.EC2 instance -> VPC.Public subnet\nIPv6 Only.EBS volume
+
+Cloudflare Tunnel -> VPC.Public subnet\nIPv6 Only.ASG.EC2 instance.cloudflared
+AWS SSM -> VPC.Public subnet\nIPv6 Only.ASG.EC2 instance.SSM agent
+VPC.Public subnet\nIPv6 Only.ASG.EC2 instance -> R2 Backups
+VPC.Public subnet\nIPv6 Only.ASG.EC2 instance -> SSM Parameter Store
