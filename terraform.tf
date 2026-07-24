@@ -1,14 +1,26 @@
 terraform {
-  required_version = ">= 0.13.1"
+  required_version = ">= 1.0"
 
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = ">= 3.56.0"
+      version = "~> 6.0"
     }
-    local = {
-      source  = "hashicorp/local"
-      version = ">= 1.4"
+    cloudflare = {
+      source  = "cloudflare/cloudflare"
+      version = "~> 5.0"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.0"
     }
   }
+}
+
+provider "aws" {
+  region = var.aws_region
+}
+
+provider "cloudflare" {
+  api_token = var.cloudflare_api_token
 }
