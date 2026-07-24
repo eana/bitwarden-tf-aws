@@ -5,7 +5,6 @@ framework: terraform
 compact: true
 quiet: true
 summary-position: bottom
-
 skip-check:
   - CKV_TF_1 # Ensure Terraform module sources use a commit hash -- pending https://github.com/hashicorp/terraform/issues/29867
   - CKV_AWS_18 # Ensure the S3 bucket has access logging enabled -- works as designed, this is a low-cost project
