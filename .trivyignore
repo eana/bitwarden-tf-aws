@@ -1,7 +1,4 @@
-# Legacy pre-migration infra, removed by the cloudflare tunnel rewrite.
-# Suppressed here to keep trivy green on the base tree before the rewrite.
-AWS-0027
-AWS-0089
-AWS-0104
-AWS-0124
-AWS-0132
+# AWS-0178: VPC Flow Logs disabled. Third-party terraform-aws-modules/vpc
+# code. Not actionable without forking the module. Cost vs benefit not worth
+# it for hobby single-instance deployment.
+AWS-0178

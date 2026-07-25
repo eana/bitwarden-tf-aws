@@ -1,34 +1,29 @@
-output "volume_id" {
-  description = "The volume ID"
-  value       = aws_ebs_volume.this.id
-}
-
-output "public_ip" {
-  description = "The public IP address the Bitwarden instance will have"
-  value       = aws_eip.this.public_ip
-}
-
-output "sg_id" {
-  description = "ID of the security group"
-  value       = aws_security_group.this.id
+output "url" {
+  description = "Vaultwarden URL"
+  value       = "https://${var.domain}"
 }
 
 output "iam_role_name" {
-  description = "The IAM role for the Bitwarden Instance"
+  description = "Instance IAM role name"
   value       = aws_iam_role.this.name
 }
 
-output "s3_bucket" {
-  description = "The S3 bucket where the backups will be stored"
-  value       = aws_s3_bucket.bucket.id
+output "sg_id" {
+  description = "Security group ID"
+  value       = aws_security_group.this.id
 }
 
-output "s3_resources" {
-  description = "The S3 bucket where all the resource files will be stored"
-  value       = aws_s3_bucket.resources.id
+output "volume_id" {
+  description = "EBS volume ID"
+  value       = aws_ebs_volume.this.id
 }
 
-output "url" {
-  description = "The URL where the Bitwarden Instance can be accessed"
-  value       = "https://${aws_route53_record.this.name}"
+output "r2_backup_bucket" {
+  description = "R2 backup bucket name"
+  value       = cloudflare_r2_bucket.backups.name
+}
+
+output "tunnel_id" {
+  description = "Cloudflare tunnel ID"
+  value       = cloudflare_zero_trust_tunnel_cloudflared.this.id
 }

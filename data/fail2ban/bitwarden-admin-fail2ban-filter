@@ -1,6 +1,0 @@
-[INCLUDES]
-before = common.conf
-
-[Definition]
-failregex = ^.*Invalid admin token\. IP: <ADDR>.*$
-ignoreregex =

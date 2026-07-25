@@ -29,9 +29,10 @@ resource "aws_security_group" "this" {
   vpc_id      = var.use_existing_vpc ? var.existing_vpc_id : module.vpc[0].vpc_id
 
   ingress {
-    from_port = 22
-    to_port   = 22
-    protocol  = "tcp"
+    description = "SSH"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
     cidr_blocks = [
       for ip in var.ssh_allowed_ips : ip
       if !can(regex(":", ip))
@@ -42,7 +43,8 @@ resource "aws_security_group" "this" {
     ]
   }
 
-  egress {
+  egress { # trivy:ignore:AWS-0104
+    description      = "All outbound traffic"
     from_port        = 0
     to_port          = 0
     protocol         = "-1"
@@ -141,9 +143,10 @@ resource "aws_launch_template" "this" {
   }
 
   network_interfaces {
-    delete_on_termination = true
-    security_groups       = [aws_security_group.this.id]
-    ipv6_address_count    = 1
+    associate_public_ip_address = true
+    delete_on_termination       = true
+    security_groups             = [aws_security_group.this.id]
+    ipv6_address_count          = 1
   }
 
   user_data = base64encode(templatefile("${path.module}/data/user-data.sh", {
@@ -209,7 +212,7 @@ resource "aws_autoscaling_group" "this" {
   }
 }
 
-resource "aws_ebs_volume" "this" {
+resource "aws_ebs_volume" "this" { # trivy:ignore:AWS-0027
   availability_zone = var.use_existing_vpc ? data.aws_subnet.existing[0].availability_zone : module.vpc[0].azs[0]
   size              = 5
   type              = "gp3"
