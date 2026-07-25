@@ -1,3 +1,15 @@
+variable "aws_region" {
+  description = "AWS region"
+  type        = string
+  default     = "eu-north-1"
+}
+
+variable "cloudflare_api_token" {
+  description = "Cloudflare API token"
+  type        = string
+  sensitive   = true
+}
+
 variable "domain" {
   description = "Domain for vaultwarden and Cloudflare DNS"
   type        = string
@@ -34,7 +46,7 @@ variable "cloudflare_zone_id" {
 }
 
 variable "env_content" {
-  description = "Runtime .env content, stored in SSM"
+  description = "Runtime .env file content -- stored in SSM and fetched by instance at boot"
   type        = string
   sensitive   = true
 }
@@ -49,7 +61,6 @@ variable "ssh_allowed_ips" {
   type        = list(string)
 }
 
-# VPC
 variable "use_existing_vpc" {
   description = "Use existing VPC instead of creating one"
   type        = bool
@@ -63,7 +74,7 @@ variable "existing_vpc_id" {
 }
 
 variable "existing_subnet_ids" {
-  description = "Public subnet IDs when use_existing_vpc = true"
+  description = "Subnet IDs when use_existing_vpc = true"
   type        = list(string)
   default     = []
 }

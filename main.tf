@@ -239,14 +239,11 @@ resource "aws_ebs_volume" "this" { # trivy:ignore:AWS-0027
   size              = 5
   type              = "gp3"
   encrypted         = true
+  final_snapshot    = true
 
   tags = merge(var.tags, {
     Name = "${var.name}-data"
   })
-
-  lifecycle {
-    prevent_destroy = true
-  }
 }
 
 resource "cloudflare_zero_trust_tunnel_cloudflared" "this" {
