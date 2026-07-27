@@ -2,7 +2,7 @@ version: "3.5"
 
 services:
   dockerproxy:
-    image: tecnativa/docker-socket-proxy:v0.4.2
+    image: tecnativa/docker-socket-proxy:v0.5.0
     container_name: dockerproxy
     ports:
       - 2375
@@ -15,7 +15,7 @@ services:
       - internal
     restart: unless-stopped
   traefik:
-    image: "traefik:v3.7.8"
+    image: "traefik:v3.7.9"
     container_name: "traefik"
     user: 1000:1000
     labels:
@@ -68,7 +68,7 @@ services:
       MARIADB_PASSWORD: "${db_user_password}"
       MARIADB_ROOT_PASSWORD: "${db_root_password}"
   bitwarden:
-    image: vaultwarden/server:1.36.0
+    image: vaultwarden/server:1.37.0
     container_name: "bitwarden"
     user: 1000:1000
     volumes:
