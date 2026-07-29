@@ -1,0 +1,106 @@
+name: CI
+on:
+  push:
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+jobs:
+  changes:
+    name: Changes
+    runs-on: ubuntu-latest
+    outputs:
+      module: ${{ steps.changes.outputs.module }}
+      example: ${{ steps.changes.outputs.example }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Path filters
+        uses: dorny/paths-filter@7b450fff21473bca461d4b92ce414b9d0420d706 # v4
+        id: changes
+        with:
+          filters: |
+            module:
+              - '*.tf'
+              - '*.tfvars'
+              - 'terraform.mk'
+              - 'data/**'
+              - 'scripts/**'
+            example:
+              - 'example/**'
+              - '**/*.tfvars'
+  pre-commit:
+    name: Pre-commit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Install Nix
+        uses: cachix/install-nix-action@630ae543ea3a38a9a4166f03376c02c50f408342 # v31
+        with:
+          install_url: https://releases.nixos.org/nix/nix-2.33.0/install
+      - name: Cache Cachix
+        uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
+        with:
+          useDaemon: true
+          name: eana
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+      - name: Run pre-commit Checks
+        run: nix develop -c pre-commit run --all-files --show-diff-on-failure
+  flake-check:
+    name: Flake check
+    runs-on: ubuntu-latest
+    needs: [pre-commit]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Install Nix
+        uses: cachix/install-nix-action@630ae543ea3a38a9a4166f03376c02c50f408342 # v31
+        with:
+          install_url: https://releases.nixos.org/nix/nix-2.33.0/install
+      - name: Cache Cachix
+        uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
+        with:
+          useDaemon: true
+          name: eana
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+      - name: Run flake check
+        run: nix flake check
+  tofu-module:
+    name: Tofu module
+    runs-on: ubuntu-latest
+    needs: [pre-commit, changes]
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.module == 'true'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Install Nix
+        uses: cachix/install-nix-action@630ae543ea3a38a9a4166f03376c02c50f408342 # v31
+        with:
+          install_url: https://releases.nixos.org/nix/nix-2.33.0/install
+      - name: Cache Cachix
+        uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
+        with:
+          useDaemon: true
+          name: eana
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+      - name: Init
+        run: nix develop -c tofu init -backend=false
+      - name: Validate
+        run: nix develop -c tofu validate
+  tofu-example:
+    name: Tofu example
+    runs-on: ubuntu-latest
+    needs: [pre-commit, changes]
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.module == 'true' || needs.changes.outputs.example == 'true'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Install Nix
+        uses: cachix/install-nix-action@630ae543ea3a38a9a4166f03376c02c50f408342 # v31
+        with:
+          install_url: https://releases.nixos.org/nix/nix-2.33.0/install
+      - name: Cache Cachix
+        uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
+        with:
+          useDaemon: true
+          name: eana
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+      - name: Init
+        run: cd example && nix develop -c tofu init -backend=false
+      - name: Validate
+        run: cd example && nix develop -c tofu validate
