@@ -64,14 +64,21 @@ BACKUP_ENV
 # Write cloudflared config
 mkdir -p /etc/cloudflared
 
+# Fetch tunnel secret from SSM
+retry 5 env AWS_USE_DUALSTACK_ENDPOINT=true aws ssm get-parameter \
+  --name "/${name}/tunnel-secret" --with-decryption \
+  --query Parameter.Value --output text >/etc/cloudflared/tunnel_secret
+chmod 600 /etc/cloudflared/tunnel_secret
+
 cat >/etc/cloudflared/credentials.json <<TUNNEL_CONFIG
 {
   "AccountTag": "${cloudflare_account_id}",
-  "TunnelSecret": "${tunnel_secret}",
+  "TunnelSecret": "$(cat /etc/cloudflared/tunnel_secret)",
   "TunnelID": "${tunnel_id}"
 }
 TUNNEL_CONFIG
 chmod 600 /etc/cloudflared/credentials.json
+rm /etc/cloudflared/tunnel_secret
 
 cat >/etc/cloudflared/config.yml <<CLOUDFLARED_CONFIG
 tunnel: ${tunnel_id}
@@ -84,6 +91,10 @@ ingress:
   - service: http_status:404
 CLOUDFLARED_CONFIG
 
+# Cloudflared runs as a dedicated non-root user
+useradd -r -s /usr/sbin/nologin cloudflared
+chown -R cloudflared:cloudflared /etc/cloudflared
+
 # Cloudflared systemd service
 cat >/etc/systemd/system/cloudflared.service <<UNIT
 [Unit]
@@ -91,6 +102,7 @@ Description=Cloudflare Tunnel
 After=network.target
 
 [Service]
+User=cloudflared
 ExecStart=/usr/bin/cloudflared tunnel --config /etc/cloudflared/config.yml run
 Restart=always
 RestartSec=5

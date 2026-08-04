@@ -63,6 +63,14 @@ resource "aws_ssm_parameter" "env" {
   tags = var.tags
 }
 
+resource "aws_ssm_parameter" "tunnel_secret" {
+  name  = "/${var.name}/tunnel-secret"
+  type  = "SecureString"
+  value = random_bytes.tunnel_secret.base64
+
+  tags = var.tags
+}
+
 resource "aws_iam_role" "this" {
   name_prefix = "${var.name}-instance-role"
   assume_role_policy = jsonencode({
@@ -85,9 +93,12 @@ resource "aws_iam_role_policy" "ssm_read" {
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
-      Effect   = "Allow"
-      Action   = "ssm:GetParameter"
-      Resource = aws_ssm_parameter.env.arn
+      Effect = "Allow"
+      Action = "ssm:GetParameter"
+      Resource = [
+        aws_ssm_parameter.env.arn,
+        aws_ssm_parameter.tunnel_secret.arn,
+      ]
     }]
   })
 }
@@ -152,7 +163,6 @@ resource "aws_launch_template" "this" {
   user_data = base64encode(templatefile("${path.module}/data/user-data.sh", {
     name                  = var.name
     cloudflare_account_id = var.cloudflare_account_id
-    tunnel_secret         = random_password.tunnel_secret.result
     tunnel_id             = cloudflare_zero_trust_tunnel_cloudflared.this.id
     domain                = var.domain
     backup_script         = file("${path.module}/data/backup.sh")
@@ -229,12 +239,11 @@ resource "aws_ebs_volume" "this" { # trivy:ignore:AWS-0027
 resource "cloudflare_zero_trust_tunnel_cloudflared" "this" {
   account_id    = var.cloudflare_account_id
   name          = var.name
-  tunnel_secret = random_password.tunnel_secret.result
+  tunnel_secret = random_bytes.tunnel_secret.base64
 }
 
-resource "random_password" "tunnel_secret" {
-  length  = 32
-  special = false
+resource "random_bytes" "tunnel_secret" {
+  length = 32
 }
 
 resource "cloudflare_ruleset" "https_redirect" {
