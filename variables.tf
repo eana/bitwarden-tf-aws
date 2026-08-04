@@ -18,7 +18,7 @@ variable "name" {
 variable "instance_types" {
   description = "EC2 spot instance types"
   type        = list(string)
-  default     = ["t4g.nano"]
+  default     = ["t4g.nano", "t4g.micro"]
 }
 
 variable "tags" {

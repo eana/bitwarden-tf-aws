@@ -144,10 +144,9 @@ resource "aws_key_pair" "this" {
 }
 
 resource "aws_launch_template" "this" {
-  name_prefix   = "${var.name}-lt-"
-  image_id      = data.aws_ami.this.id
-  instance_type = var.instance_types[0]
-  key_name      = aws_key_pair.this.key_name
+  name_prefix = "${var.name}-lt-"
+  image_id    = data.aws_ami.this.id
+  key_name    = aws_key_pair.this.key_name
 
   iam_instance_profile {
     name = aws_iam_instance_profile.this.name
@@ -198,9 +197,23 @@ resource "aws_autoscaling_group" "this" {
   health_check_type         = "EC2"
   health_check_grace_period = 300
 
-  launch_template {
-    id      = aws_launch_template.this.id
-    version = "$Latest"
+  mixed_instances_policy {
+    instances_distribution {
+      on_demand_base_capacity                  = 0
+      on_demand_percentage_above_base_capacity = 0
+    }
+    launch_template {
+      launch_template_specification {
+        launch_template_id = aws_launch_template.this.id
+        version            = "$Latest"
+      }
+      dynamic "override" {
+        for_each = var.instance_types
+        content {
+          instance_type = override.value
+        }
+      }
+    }
   }
 
   tag {
