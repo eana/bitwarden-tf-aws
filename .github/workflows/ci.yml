@@ -12,33 +12,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
 jobs:
-  changes:
-    name: Changes
-    runs-on: ubuntu-latest
-    outputs:
-      module: ${{ steps.changes.outputs.module }}
-      example: ${{ steps.changes.outputs.example }}
-      flake: ${{ steps.changes.outputs.flake }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
-      - name: Path filters
-        uses: dorny/paths-filter@7b450fff21473bca461d4b92ce414b9d0420d706 # v4
-        id: changes
-        with:
-          filters: |
-            module:
-              - '*.tf'
-              - '*.tfvars'
-              - 'terraform.mk'
-              - 'data/**'
-              - 'scripts/**'
-            example:
-              - 'example/**'
-              - '**/*.tfvars'
-            flake:
-              - 'flake.nix'
-              - 'flake.lock'
-              - '**/*.nix'
   pre-commit:
     name: Pre-commit
     runs-on: ubuntu-latest
@@ -58,8 +31,7 @@ jobs:
   flake-check:
     name: Flake check
     runs-on: ubuntu-latest
-    needs: [pre-commit, changes]
-    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.flake == 'true'
+    needs: [pre-commit]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
       - name: Install Nix
@@ -76,8 +48,7 @@ jobs:
   tofu-module:
     name: Tofu module
     runs-on: ubuntu-latest
-    needs: [pre-commit, changes]
-    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.module == 'true'
+    needs: [pre-commit]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
       - name: Install Nix
@@ -96,8 +67,7 @@ jobs:
   tofu-example:
     name: Tofu example
     runs-on: ubuntu-latest
-    needs: [pre-commit, changes]
-    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.module == 'true' || needs.changes.outputs.example == 'true'
+    needs: [pre-commit]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
       - name: Install Nix
