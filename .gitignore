@@ -1,3 +1,6 @@
+### direnv ###
+.direnv/
+
 ### Terraform ###
 # Local .terraform directories
 **/.terraform/*
@@ -16,15 +19,27 @@ crash.log
 # to change depending on the environment.
 #
 *.tfvars
+terraform.tfvars
 
 # Include tfplan files to ignore the plan output of command:
 # terraform plan -out=tfplan
 # example: *tfplan*
 **/*.plan
+**/planfile
 
 # Ignore CLI configuration files
 .terraformrc
 terraform.rc
 
+### age key ###
+age-key.txt
+
+### pre-commit ###
+/.pre-commit-config.yaml
+
+### terraform-backend-git ###
+git_http_backend.auto.tf
+
 ### IntelliJ ###
 **/.idea
+*.planfile

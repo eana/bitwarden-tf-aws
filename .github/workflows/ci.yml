@@ -1,0 +1,85 @@
+name: CI
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+env:
+  NIX_VERSION: "2.33.0"
+permissions: read-all
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
+jobs:
+  pre-commit:
+    name: Pre-commit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+      - name: Install Nix
+        uses: cachix/install-nix-action@630ae543ea3a38a9a4166f03376c02c50f408342 # v31
+        with:
+          install_url: https://releases.nixos.org/nix/nix-${{ env.NIX_VERSION }}/install
+      - name: Cache Cachix
+        uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
+        with:
+          name: eana
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+      - name: Run pre-commit Checks
+        run: nix develop -c pre-commit run --all-files --show-diff-on-failure
+  flake-check:
+    name: Flake check
+    runs-on: ubuntu-latest
+    needs: [pre-commit]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+      - name: Install Nix
+        uses: cachix/install-nix-action@630ae543ea3a38a9a4166f03376c02c50f408342 # v31
+        with:
+          install_url: https://releases.nixos.org/nix/nix-${{ env.NIX_VERSION }}/install
+      - name: Cache Cachix
+        uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
+        with:
+          name: eana
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+      - name: Run flake check
+        run: nix flake check
+  tofu-module:
+    name: Tofu module
+    runs-on: ubuntu-latest
+    needs: [pre-commit]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+      - name: Install Nix
+        uses: cachix/install-nix-action@630ae543ea3a38a9a4166f03376c02c50f408342 # v31
+        with:
+          install_url: https://releases.nixos.org/nix/nix-${{ env.NIX_VERSION }}/install
+      - name: Cache Cachix
+        uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
+        with:
+          name: eana
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+      - name: Init
+        run: nix develop -c tofu init -backend=false
+      - name: Validate
+        run: nix develop -c tofu validate
+  tofu-example:
+    name: Tofu example
+    runs-on: ubuntu-latest
+    needs: [pre-commit]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+      - name: Install Nix
+        uses: cachix/install-nix-action@630ae543ea3a38a9a4166f03376c02c50f408342 # v31
+        with:
+          install_url: https://releases.nixos.org/nix/nix-${{ env.NIX_VERSION }}/install
+      - name: Cache Cachix
+        uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
+        with:
+          name: eana
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+      - name: Init
+        run: nix develop -c sh -c 'cd example && tofu init -backend=false'
+      - name: Validate
+        run: nix develop -c sh -c 'cd example && tofu validate'

@@ -1,0 +1,4 @@
+# AWS-0178: VPC Flow Logs disabled. Third-party terraform-aws-modules/vpc
+# code. Not actionable without forking the module. Cost vs benefit not worth
+# it for hobby single-instance deployment.
+AWS-0178

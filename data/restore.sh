@@ -1,143 +1,69 @@
 #!/bin/bash
-# shellcheck disable=SC2154
 set -euo pipefail
 
-# -- Constants for coloured output --------------------------------------------
-readonly RED='\033[0;31m'
-readonly GREEN='\033[0;32m'
-readonly YELLOW='\033[0;33m'
-readonly RESET='\033[0m'
+VAULTWARDEN_DIR=/data/vaultwarden
+RESTORE_TMP=/data/tmp
 
-# -- Helper functions ---------------------------------------------------------
-function usage {
-    # Print out the usage
-    cat <<EOT
-$0 DATE
-Restores a backup from the given date.
-    DATE - The date format is YYYYMMDD
-EOT
-}
+# Deploy-time config from user-data
+# shellcheck source=/dev/null
+[ -f /etc/vaultwarden/backup.env ] && source /etc/vaultwarden/backup.env
+R2_BUCKET="${R2_BUCKET:-}"
 
-function have_program {
-    local program=$1
+if [ $# -ne 1 ]; then
+  echo "Usage: $0 {TIMESTAMP|--latest}"
+  echo "  TIMESTAMP format: YYYYMMDD-HHMMSS"
+  echo "  --latest    Restore from most recent backup in R2"
+  if [ -n "${R2_BUCKET}" ]; then
+    echo "  List available backups: aws s3 ls s3://${R2_BUCKET}/ --endpoint-url <R2_ENDPOINT_URL>"
+  fi
+  exit 1
+fi
 
-    if ! hash "$program" > /dev/null 2>&1; then
-        echo -e "$RED"Unable to find "'$program'", Is it installed?"$RESET"
-        return 1
-    fi
+if [ -z "${R2_BUCKET:-}" ]; then
+  echo "R2_BUCKET must be set in /etc/vaultwarden/backup.env"
+  exit 1
+fi
 
-    return 0
-}
+# shellcheck source=/dev/null
+. /data/scripts/r2-config.sh
+r2_load_config
 
-function sanity_check {
-    local have_error=0
+if [ "$1" = "--latest" ]; then
+  LATEST_KEY=$(aws s3 ls "s3://${R2_BUCKET}/" --endpoint-url "$R2_ENDPOINT_URL" | sort | tail -1 | awk '{print $4}')
+  if [ -z "$LATEST_KEY" ]; then
+    echo "No backups found in s3://${R2_BUCKET}/"
+    exit 1
+  fi
+  BACKUP_TIMESTAMP="${LATEST_KEY%-bitwarden-backup.tar.gz}"
+else
+  BACKUP_TIMESTAMP=$1
+fi
 
-    have_program aws || have_error=1
+BACKUP_KEY="${BACKUP_TIMESTAMP}-bitwarden-backup.tar.gz"
 
-    return $have_error
-}
+if ! aws s3 ls "s3://${R2_BUCKET}/${BACKUP_KEY}" --endpoint-url "$R2_ENDPOINT_URL" > /dev/null 2>&1; then
+  echo "Backup ${BACKUP_TIMESTAMP} not found in s3://${R2_BUCKET}/"
+  exit 1
+fi
 
-function check_backup_exists {
-    local backup_date=$1
+aws s3 cp "s3://${R2_BUCKET}/${BACKUP_KEY}" "${RESTORE_TMP}/" --endpoint-url "$R2_ENDPOINT_URL"
 
-    if ! aws s3 ls s3://"${bucket}"/"$backup_date"_bitwarden-backup.tar.gz > /dev/null 2>&1; then
-        return 1
-    fi
+docker stop vaultwarden || true
+trap 'docker start vaultwarden 2>/dev/null || docker run -d \
+  --name vaultwarden \
+  --restart unless-stopped \
+  -p 127.0.0.1:8080:80 \
+  -v /data/vaultwarden:/data \
+  --env-file /etc/vaultwarden/.env \
+  "${VAULTWARDEN_IMAGE:-vaultwarden/server:latest}" || true' EXIT
 
-    return 0
-}
+EXTRACT_DIR="${RESTORE_TMP}/extract-${BACKUP_TIMESTAMP}"
+mkdir -p "$EXTRACT_DIR"
+tar xzf "${RESTORE_TMP}/${BACKUP_KEY}" -C "$EXTRACT_DIR"
+rm -rf "${VAULTWARDEN_DIR}.old"
+[ -d "$VAULTWARDEN_DIR" ] && mv "$VAULTWARDEN_DIR" "${VAULTWARDEN_DIR}.old"
+mv "$EXTRACT_DIR" "$VAULTWARDEN_DIR"
+rm -rf "${VAULTWARDEN_DIR}.old"
+rm "${RESTORE_TMP}/${BACKUP_KEY}"
 
-function download_backup_if_exists {
-    local backup_date=$1
-    local backup_dir=$2
-
-    if check_backup_exists "$backup_date"; then
-        echo -e "$YELLOW"Downloading backup from S3..."$RESET"
-        aws s3 cp --quiet s3://"${bucket}"/"$backup_date"_bitwarden-backup.tar.gz "$backup_dir"/bitwarden-backup.tar.gz
-    fi
-}
-
-function untar_backup {
-    local backup_dir=$1
-    local dest_dir=$2
-
-    if [ -f "$backup_dir/bitwarden-backup.tar.gz" ]; then
-        # Decompress the backup file
-        echo -e "$YELLOW"Decompress the backup file..."$RESET"
-        tar xzf "$backup_dir/bitwarden-backup.tar.gz" -C "$dest_dir"
-    fi
-}
-
-function restore_backup {
-    local backup_date=$1
-    local backup_dir=$2
-
-    mkdir -p "$backup_dir"
-    download_backup_if_exists "$backup_date" "$backup_dir"
-
-    # Stop the app
-    echo -e "$YELLOW"Stopping the app..."$RESET"
-    /usr/local/bin/docker-compose -f /home/ec2-user/conf/compose/docker-compose.yml down > /dev/null 2>&1
-
-    # Synchronize the backup content with the application directory
-    echo -e "$YELLOW"Synchronize the backup content with the application directory..."$RESET"
-    sudo touch -f /home/ec2-user/bitwarden/restore.log
-    sudo chown ec2-user:ec2-user /home/ec2-user/bitwarden/restore.log
-    rsync -av --delete "$backup_dir"/bitwarden/{bitwarden-data,mysql,traefik} /home/ec2-user/bitwarden --log-file=/home/ec2-user/bitwarden/restore.log > /dev/null 2>&1
-
-    echo -e "$YELLOW"File transfer log: /home/ec2-user/bitwarden/restore.log"$RESET"
-
-    # Start the app
-    echo -e "$YELLOW"Starting the app..."$RESET"
-    /usr/local/bin/docker-compose -f /home/ec2-user/conf/compose/docker-compose.yml up -d > /dev/null 2>&1
-}
-
-function cleanup {
-    local backup_dir=$1
-
-    if [ -d "$backup_dir" ]; then
-        rm -rf "$backup_dir"
-    fi
-}
-
-# -- Main ---------------------------------------------------------------------
-function main {
-
-    if [ "$#" -ne 1 ]; then
-        echo -e "$RED"Incorrect number of arguments"$RESET"
-        usage
-        exit 1
-    fi
-
-    local backup_date=$1
-    local backup_dir=/tmp/bitwarden-backup-"$backup_date"
-
-    local temp_dir
-    temp_dir=$(mktemp -d)
-
-    echo -e "$YELLOW"Starting Sanity check."$RESET"
-    if ! sanity_check; then
-        echo -e "$RED"Sanity check failed."$RESET"
-        exit 1
-    fi
-    echo -e "$GREEN"Sanity check passed."$RESET"
-
-    if ! check_backup_exists "$backup_date"; then
-        echo -e "$RED"Backup for "$backup_date" does not exist."$RESET"
-        exit 1
-    fi
-
-    download_backup_if_exists "$backup_date" "$backup_dir"
-
-    echo -e "$YELLOW"Starting the restore."$RESET"
-    untar_backup "$backup_dir" "$temp_dir"
-    restore_backup "$backup_date" "$temp_dir"
-
-    echo -e "$YELLOW"Cleaning up."$RESET"
-    cleanup "$backup_dir"
-    cleanup "$temp_dir"
-
-    echo -e "$GREEN"All Done!"$RESET"
-}
-
-main "$@"
+echo "Restore from ${BACKUP_TIMESTAMP} complete"

@@ -1,243 +1,335 @@
-# bitwarden-tf-aws
+# Bitwarden on AWS
 
-Terraform module for deploying a cheap yet stable
-[vaultwarden](https://github.com/dani-garcia/vaultwarden) (formerly
-bitwarden_rs) to AWS.
+Deploy Bitwarden (vaultwarden) on AWS spot instances with Amazon Linux 2023, Docker, Cloudflare Tunnel, and R2 storage.
 
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+Goal: under $2/month, zero public IPv4 costs, auto-healing spot instances.
 
-- [Prerequisites](#prerequisites)
-- [Features](#features)
-- [How it works](#how-it-works)
-- [Usage](#usage)
-  - [Secrets](#secrets)
-  - [Terraform](#terraform)
-- [TODO](#todo)
-- [Contributions](#contributions)
-- [Requirements](#requirements)
-- [Providers](#providers)
-- [Modules](#modules)
-- [Resources](#resources)
-- [Inputs](#inputs)
-- [Outputs](#outputs)
+## Architecture
 
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+![Architecture diagram](docs/cloudflare-migration.svg)
+
+Instance boots via cloud-init: create swap -> install Docker + cloudflared -> fetch runtime secrets from SSM -> mount EBS volume -> deploy scripts -> start vaultwarden (Docker) + Cloudflare Tunnel (native systemd). Cloudflare Tunnel proxies HTTPS + SSH -- no public IPv4 needed.
 
 ## Prerequisites
 
-- Route53 hosted zone
-- SMTP credentials
-- EC2 key pair
-- KMS key
+- [OpenTofu](https://opentofu.org/) installed
+- AWS CLI configured (see [Authentication](#authentication) below)
+- Cloudflare account (free tier) with:
+  - API token (Zone:DNS, Tunnel, R2, Access permissions)
+  - Account ID
+  - Zone ID for your domain
+- R2 API credentials with `Object Read & Write` permission on the `bitwarden-backups` bucket
 
-## Features
+## Authentication
 
-- HTTPS using LetsEncrypt
-- Backups to S3 (daily by default)
-- fail2ban and logrotate
-- Auto healing using an auto scaling group
-- Saving cost using a spot instance
-- By default, it uses `t2.micro` and `t2.small` as instances, and it launches the cheapest one
-- Fixed source IP address by reattaching ENI
-- Encrypted secrets using [mozilla/sops](https://github.com/mozilla/sops)
+### AWS
 
-## How it works
+This project uses temporary session tokens via AWS STS with MFA. Long-lived IAM credentials are never used directly.
 
-This module provisions the following resources:
+**1. Create IAM user with MFA**
 
-- Auto Scaling Group with mixed instances policy
-- Launch Template
-- Elastic IP
-- Elastic Network Interface
-- Security Group
-- IAM Role for ENI and EBS attachment and S3 for file operations
+Create an IAM user with programmatic access. Assign a virtual MFA device.
+Attach this policy:
 
-By default, an instance of the latest Amazon Linux 2 is launched.
-The instance will run [init.sh](data/init.sh) to:
-
-1. Attach the ENI to `eth1`
-2. Attach the EBS volume as `/dev/xvdf` and mount it
-3. Install and configure `docker`, `docker-compose`, `sops`, `fail2ban`
-4. Start `Bitwarden`
-5. Switch the default route to `eth1`
-
-## Usage
-
-### Secrets
-
-The secrets are encrypted and stored in the `env.enc` file.
-The file format is:
-
-```env
-acme_email=email@example.com
-signups_allowed=false
-domain=bitwarden.example.com
-smtp_host=smtp.gmail.com
-smtp_port=587
-smtp_ssl=true
-smtp_username=username@gmail.com
-smtp_password="V3ryStr0ngPa$sw0rd!"
-enable_admin_page=true
-admin_token=0YakKKYV01Qyz2Y3ynrJVYhw4fy1HtH+oCyVK8k3LhvnpawvkmUT/LZAibYJp3Eq
-bucket=bitwarden-bucket
-db_user=bitwarden
-db_user_password=ChangeThisVeryStrongPassword
-db_root_password=ReplaceThisEvenStrongerPassword
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": ["sts:GetSessionToken", "iam:ListMFADevices"],
+      "Effect": "Allow",
+      "Resource": "*"
+    }
+  ]
+}
 ```
 
-**NOTE**: I strongly advise **NOT** to enable the Admin Page, hence to remove
-the lines containing `enable_admin_page` and `admin_token`. If you still want
-to enable it, you should at least generate a 48 char long password.
+**2. Configure AWS CLI profiles**
+
+`~/.aws/config`:
+
+```ini
+[default]
+
+[profile temp]
+region = eu-north-1
+```
+
+`~/.aws/credentials`:
+
+```ini
+[default]
+
+[temp]
+aws_access_key_id = AKIAXXXXXXXXXXXXXXXX
+aws_secret_access_key = ...
+```
+
+The `temp` profile stores your long-lived IAM credentials. The `default` profile gets temporary session tokens written by the script below.
+
+**3. Generate temporary credentials**
 
 ```bash
-$ openssl rand -base64 48
+./scripts/aws-login.sh <iam-username> <mfa-code>
 ```
 
-Once the `env.enc` file is populated with the correct secrets it must be
-encrypted. This file should never be left unencrypted.
+**4. Verify**
 
 ```bash
-$ SOPS_KMS_ARN="KMS_KEY_ARN" sops -e -i data/env.enc
+aws sts get-caller-identity
 ```
 
-replace `KMS_KEY_ARN` with the ARN of the KMS you want to use
+All tools (tofu, aws CLI) use the default profile automatically -- no `--profile` flag needed.
 
-### Terraform
+See [scripts/README.md](scripts/README.md) for full details.
 
-```terraform
-provider "aws" {
-  region = "eu-west-1"
-}
+### Cloudflare
 
-data "local_file" "this" {
-  filename = "${path.module}/env.enc"
-}
+See section [Get Cloudflare credentials](#2-get-cloudflare-credentials) below.
 
-data "aws_kms_key" "this" {
-  key_id = "alias/bitwarden-sops-encryption-key-prod"
-}
+## Secrets Setup
 
-module "bitwarden" {
-  source         = "../"
-  name           = "bitwarden"
-  domain         = "bitwarden.example.org"
-  environment    = "prod"
-  route53_zone   = "example.org."
-  ssh_cidr       = ["212.178.73.60/32"]
-  env_file       = data.local_file.this.content
-  instance_types = ["t2.micro", "t2.small", "t2.medium", "t2.large"]
-}
+### 1. Get Cloudflare credentials
+
+You need four Cloudflare credentials for `terraform.tfvars`:
+
+**Cloudflare API Token:**
+
+1. Log in to Cloudflare dashboard, go to My Profile, then API Tokens
+2. Create Token, use template "Edit Cloudflare Workers" (or create custom)
+3. Required permissions:
+   - **Account-level:**
+     - `Cloudflare Tunnel:Edit`
+     - `Workers R2 Storage:Edit`
+     - `Access: Apps and Policies:Edit`
+   - **Zone-level (select your domain):**
+     - `DNS:Edit`
+     - `Zone Settings:Edit`
+     - `Single Redirect:Edit`
+     - `Transform Rules:Edit`
+4. Copy the token (shown once)
+
+**Cloudflare Account ID:**
+
+Found in Cloudflare dashboard right sidebar under "API", labeled Account ID.
+
+**Cloudflare Zone ID:**
+
+Select your domain in Cloudflare dashboard, go to Overview, find Zone ID in the right sidebar.
+
+**R2 API Credentials:**
+
+Separate token used only for backups. Scoped to R2 only, not the main API token above.
+
+1. Cloudflare dashboard -> Storage & databases -> R2 Object Storage -> Overview -> API Tokens {} Manage
+2. Create **Account API token** with `Object Read & Write` permission
+3. Set scope to **Apply to all buckets in this account (including newly created buckets)**
+   -- the `bitwarden-backups` bucket doesn't exist yet (tofu creates it). Once deployed, edit the token and restrict scope to `bitwarden-backups` only.
+4. Copy Access Key ID and Secret Access Key
+
+**Tunnel secret:**
+
+Managed by tofu (`random_bytes`), stored in SSM as `/bitwarden/tunnel-secret` (SecureString) and fetched at instance boot before cloudflared starts. It also exists plaintext in Terraform state (`random_bytes` + tunnel resources) -- unavoidable for a Terraform-managed tunnel. Instance user-data carries no secret.
+
+### 2. Create terraform.tfvars (gitignored)
+
+Create `terraform.tfvars` in the project root:
+
+```hcl
+domain                = "vaultwarden.yourdomain.com"
+cloudflare_api_token  = "<your-api-token>"
+cloudflare_account_id = "<your-account-id>"
+cloudflare_zone_id    = "<your-zone-id>"
+ssh_public_key        = "<content-of-~/.ssh/id_ed25519.pub>"
+ssh_allowed_ips       = ["<your-public-ip>/32"]
+env_content           = <<EOF
+DOMAIN=<your-domain>
+R2_ACCESS_KEY_ID=<your-r2-access-key-id>
+R2_SECRET_ACCESS_KEY=<your-r2-secret-access-key>
+R2_ENDPOINT_URL=https://<your-account-id>.r2.cloudflarestorage.com
+VAULTWARDEN_ADMIN_TOKEN=<generate-a-strong-random-token>
+EOF
 ```
 
-## TODO
+Generate the admin token:
 
-1. ~~Add a restore script~~
-2. ~~Manage dependencies with
-   [renovate-bot](https://github.com/renovatebot/renovate)~~
-3. ~~Implement a retry mechanism when attaching ENI and EBS~~
-4. ~~Detect if the EBS volume has been formatted or not~~
-5. ~~Add logrotate for Traefik logs~~
-6. ~~Catch the spot instance termination event and trigger a backup~~
-7. Verify that the application has properly launched by logging in as a dummy
-   user
+```bash
+openssl rand -base64 48
+```
 
-## Contributions
+To find your public IP:
 
-This is an open source software. Feel free to open issues and pull requests.
+```bash
+curl -s ifconfig.me
+```
 
-<!-- BEGIN_TF_DOCS -->
-## Requirements
+Include any additional IPs or CIDR ranges you want to allow SSH access:
 
-| Name | Version |
-|------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.13.1 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 3.56.0 |
-| <a name="requirement_local"></a> [local](#requirement\_local) | >= 1.4 |
+```hcl
+ssh_allowed_ips = ["203.0.113.1/32", "198.51.100.0/24"]
+```
 
-## Providers
+> `terraform.tfvars` is in `.gitignore` -- it will never be committed. The `env_content` value is stored in AWS SSM Parameter Store as a SecureString -- no local encryption files needed.
 
-| Name | Version |
-|------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 3.56.0 |
+### 3. Deploy
 
-## Modules
+```bash
+tofu init
+tofu plan -var-file=terraform.tfvars
+tofu apply -var-file=terraform.tfvars
+```
 
-No modules.
+No age key needed. All secrets (R2 credentials, admin token) are stored directly in SSM via the `env_content` variable.
 
-## Resources
+## SSH Access
 
-| Name | Type |
-|------|------|
-| [aws_autoscaling_group.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_group) | resource |
-| [aws_ebs_volume.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ebs_volume) | resource |
-| [aws_eip.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eip) | resource |
-| [aws_iam_instance_profile.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_instance_profile) | resource |
-| [aws_iam_role.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
-| [aws_iam_role_policy.ebs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
-| [aws_iam_role_policy.eni](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
-| [aws_iam_role_policy.s3](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
-| [aws_iam_role_policy.spot](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
-| [aws_launch_template.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/launch_template) | resource |
-| [aws_network_interface.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/network_interface) | resource |
-| [aws_route53_record.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_record) | resource |
-| [aws_s3_bucket.bucket](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket) | resource |
-| [aws_s3_bucket.resources](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket) | resource |
-| [aws_s3_bucket_acl.bucket](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_acl) | resource |
-| [aws_s3_bucket_acl.resources](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_acl) | resource |
-| [aws_s3_bucket_lifecycle_configuration.bucket](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_lifecycle_configuration) | resource |
-| [aws_s3_bucket_policy.policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_policy) | resource |
-| [aws_s3_bucket_public_access_block.bucket](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_public_access_block) | resource |
-| [aws_s3_bucket_public_access_block.resources](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_public_access_block) | resource |
-| [aws_s3_bucket_server_side_encryption_configuration.bucket](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_server_side_encryption_configuration) | resource |
-| [aws_s3_bucket_server_side_encryption_configuration.resources](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_server_side_encryption_configuration) | resource |
-| [aws_s3_bucket_versioning.bucket](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_versioning) | resource |
-| [aws_s3_bucket_versioning.resources](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_versioning) | resource |
-| [aws_s3_object.AWS_SpotInstancePricing](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_object) | resource |
-| [aws_s3_object.AWS_SpotTerminationNotifier](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_object) | resource |
-| [aws_s3_object.admin_fail2ban_filter](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_object) | resource |
-| [aws_s3_object.admin_fail2ban_jail](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_object) | resource |
-| [aws_s3_object.backup](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_object) | resource |
-| [aws_s3_object.bitwarden-logrotate](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_object) | resource |
-| [aws_s3_object.compose](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_object) | resource |
-| [aws_s3_object.env](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_object) | resource |
-| [aws_s3_object.fail2ban_filter](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_object) | resource |
-| [aws_s3_object.fail2ban_jail](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_object) | resource |
-| [aws_s3_object.restore](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_object) | resource |
-| [aws_s3_object.traefik-dynamic](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_object) | resource |
-| [aws_s3_object.traefik-logrotate](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_object) | resource |
-| [aws_security_group.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
-| [aws_ami.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
-| [aws_iam_policy_document.s3policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
-| [aws_route53_zone.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/route53_zone) | data source |
-| [aws_subnets.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/subnets) | data source |
-| [aws_vpc.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/vpc) | data source |
+### Primary: Cloudflare Tunnel SSH
 
-## Inputs
+```bash
+cloudflared access ssh --hostname ssh.example.com
+```
 
-| Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| <a name="input_additional_tags"></a> [additional\_tags](#input\_additional\_tags) | Additional tags to apply to resources created with this module | `map(string)` | `{}` | no |
-| <a name="input_backup_schedule"></a> [backup\_schedule](#input\_backup\_schedule) | A cron expression to describe how often your data is backed up | `string` | `"0 9 * * *"` | no |
-| <a name="input_bucket_version_expiration_days"></a> [bucket\_version\_expiration\_days](#input\_bucket\_version\_expiration\_days) | Specifies when noncurrent object versions expire | `number` | `30` | no |
-| <a name="input_domain"></a> [domain](#input\_domain) | The domain name for the Bitwarden instance | `string` | n/a | yes |
-| <a name="input_env_file"></a> [env\_file](#input\_env\_file) | The name of the default docker-compose encrypted env file | `string` | n/a | yes |
-| <a name="input_environment"></a> [environment](#input\_environment) | The environment to deploy to | `string` | n/a | yes |
-| <a name="input_instance_types"></a> [instance\_types](#input\_instance\_types) | Instance types in the Launch Template. The first instance in the list will have the | `list(string)` | <pre>[<br>  "t2.micro",<br>  "t2.small"<br>]</pre> | no |
-| <a name="input_name"></a> [name](#input\_name) | Name to be used as identifier | `string` | `"bitwarden"` | no |
-| <a name="input_route53_zone"></a> [route53\_zone](#input\_route53\_zone) | The zone in which the DNS record will be created | `string` | n/a | yes |
-| <a name="input_ssh_cidr"></a> [ssh\_cidr](#input\_ssh\_cidr) | The IP ranges from where the SSH connections will be allowed | `list(any)` | `[]` | no |
-| <a name="input_tags"></a> [tags](#input\_tags) | Tags applied to resources created with this module | `map(any)` | `{}` | no |
+- Free (up to 50 users)
+- Access controlled by `var.ssh_allowed_ips` (IP ranges in terraform.tfvars)
+- No AWS dependency
+
+### Fallback: SSM Session Manager
+
+```bash
+aws ssm start-session --target <instance-id>
+```
+
+- IAM-based auth
+- Requires `AmazonSSMManagedInstanceCore` on instance role
+
+## Bootstrap Flow
+
+On instance launch, cloud-init runs `data/user-data.sh`:
+
+1. Create 1GB swap file (t4g.nano needs it for dnf / installs)
+2. Enable SSM Agent dual-stack (required for IPv6-only instances)
+3. Install Docker + cloudflared (native, from cloudflared RPM repo)
+4. Fetch runtime secrets from SSM (`/bitwarden/env` SecureString) -- uses dual-stack AWS endpoint
+5. Write cloudflared tunnel credentials + ingress rules
+6. Start cloudflared as a systemd service
+7. Discover and format EBS volume, mount at `/data/`
+8. Create `/data/vaultwarden` and `/data/scripts` directories
+9. Deploy backup, restore, and spot termination scripts to `/data/scripts/`
+10. Start spot-termination-notifier as a systemd service
+11. Start vaultwarden via `docker run`
+
+All network-dependent operations use exponential backoff retry (up to 5 attempts).
+
+## Variables
+
+See `variables.tf` for defaults.
+
+### In terraform.tfvars (gitignored)
+
+| Variable                | Description                                            |
+| ----------------------- | ------------------------------------------------------ |
+| `domain`                | Vaultwarden domain                                     |
+| `cloudflare_api_token`  | Cloudflare API token                                   |
+| `cloudflare_account_id` | Cloudflare account ID                                  |
+| `cloudflare_zone_id`    | Cloudflare zone ID for the domain                      |
+| `ssh_public_key`        | SSH public key for EC2 access                          |
+| `ssh_allowed_ips`       | IP ranges allowed to SSH                               |
+| `env_content`           | Runtime .env content (stored in SSM SecureString)      |
+
+### In env_content (SSM SecureString)
+
+| Variable                  | Description                                                  |
+| ------------------------- | ------------------------------------------------------------ |
+| `DOMAIN`                  | Vaultwarden domain (must match `domain` in terraform.tfvars) |
+| `R2_ACCESS_KEY_ID`        | R2 API access key                                            |
+| `R2_SECRET_ACCESS_KEY`    | R2 API secret key                                            |
+| `R2_ENDPOINT_URL`         | R2 S3-compatible endpoint URL                                |
+| `VAULTWARDEN_ADMIN_TOKEN` | Admin panel token (optional)                                 |
+
+### Non-sensitive (in repo)
+
+| Variable              | Default        | Description                           |
+| --------------------- | -------------- | ------------------------------------- |
+| `name`                | `"bitwarden"`  | Resource name prefix                  |
+| `instance_types`      | `["t4g.nano","t4g.micro"]` | Spot instance types |
+| `use_existing_vpc`    | `false`        | Use existing VPC by ID                |
+| `existing_vpc_id`     | `""`           | VPC ID when use_existing_vpc=true     |
+| `existing_subnet_ids` | `[]`           | Subnet IDs when use_existing_vpc=true |
+| `tags`                | `{}`           | Resource tags                         |
+| `aws_region`          | `"eu-north-1"` | AWS region (eu-north-1 is cheaper)    |
+
+Caveats:
+- `instance_types` are all passed as `mixed_instances_policy` overrides (100% spot); AWS selects the available/cheapest and falls back across types.
+- `existing_subnet_ids` must be public (IPv6-capable); there is no NAT gateway.
+- The ASG and EBS volume are pinned to a single AZ. Multi-type spot fallback helps within that AZ but not if the whole AZ lacks capacity.
+
+## Migration from v1
+
+This project was redesigned from the v1 setup (S3 + Traefik + Docker Compose + MariaDB). The migration switches from MariaDB to SQLite and replaces S3 with R2, removing `iam.tf`, `s3.tf`, `network.tf`, and `locals.tf`.
+
+**Breaking change -- data loss risk.** Running `terraform apply` on existing state will schedule destruction of old S3 bucket, IAM roles, and network resources. A migration plan that includes `terraform state rm` for deleted resources before applying is required if migrating existing state.
+
+For new deployments (no existing state), no action needed.
 
 ## Outputs
 
-| Name | Description |
-|------|-------------|
-| <a name="output_iam_role_name"></a> [iam\_role\_name](#output\_iam\_role\_name) | The IAM role for the Bitwarden Instance |
-| <a name="output_public_ip"></a> [public\_ip](#output\_public\_ip) | The public IP address the Bitwarden instance will have |
-| <a name="output_s3_bucket"></a> [s3\_bucket](#output\_s3\_bucket) | The S3 bucket where the backups will be stored |
-| <a name="output_s3_resources"></a> [s3\_resources](#output\_s3\_resources) | The S3 bucket where all the resource files will be stored |
-| <a name="output_sg_id"></a> [sg\_id](#output\_sg\_id) | ID of the security group |
-| <a name="output_url"></a> [url](#output\_url) | The URL where the Bitwarden Instance can be accessed |
-| <a name="output_volume_id"></a> [volume\_id](#output\_volume\_id) | The volume ID |
-<!-- END_TF_DOCS -->
+| Output               | Description                     |
+| -------------------- | ------------------------------- |
+| `url`                | `https://<domain>`              |
+| `iam_role_name`      | Instance IAM role name          |
+| `sg_id`              | Security group ID               |
+| `volume_id`          | EBS volume ID                   |
+| `r2_backup_bucket`   | R2 backup bucket name (resides in EU/WEUR for data residency)           |
+| `tunnel_id`          | Cloudflare tunnel ID            |
+
+## Data Reference
+
+### Instance filesystem
+
+| Path                              | Contents                                           |
+| --------------------------------- | -------------------------------------------------- |
+| `/data/vaultwarden/`              | Vaultwarden SQLite database + attachments (EBS)    |
+| `/data/scripts/backup.sh`         | Backup script -- stops vaultwarden, tars to R2      |
+| `/data/scripts/restore.sh`        | Restore script -- download from R2, extract         |
+| `/data/scripts/r2-config.sh`      | Shared R2 config loader -- sourced by backup/restore |
+| `/data/scripts/AWS_SpotTerminationNotifier.sh` | Graceful stop on spot termination     |
+| `/etc/vaultwarden/.env`           | Runtime environment (from SSM)                     |
+| `/etc/cloudflared/credentials.json` | Cloudflare tunnel credentials (template-substituted) |
+| `/etc/cloudflared/config.yml`     | Cloudflare tunnel ingress rules                    |
+| `/etc/systemd/system/spot-termination-notifier.service` | Spot term handler systemd unit |
+
+### Backup naming
+
+Backups are stored in R2 as `s3://bitwarden-backups/<YYYYMMDD-HHMMSS>-bitwarden-backup.tar.gz`. Restore from a specific timestamp:
+
+```bash
+/data/scripts/restore.sh 20260101-120000
+```
+
+Or restore from the latest backup automatically:
+
+```bash
+/data/scripts/restore.sh --latest
+```
+
+The `--latest` mode is also called automatically during instance bootstrap if the EBS volume is empty (e.g., new deploy or replaced volume).
+
+List available backups:
+
+```bash
+aws s3 ls s3://bitwarden-backups/ --endpoint-url <R2_ENDPOINT_URL>
+```
+
+## Cost (~$1.86/month)
+
+| Item                           | Cost             |
+| ------------------------------ | ---------------- |
+| EC2 spot t4g.nano (eu-north-1) | ~$1.46           |
+| EBS gp3 5GB                    | $0.40            |
+| R2 storage (<5GB)              | $0 (free tier)   |
+| Cloudflare DNS + Tunnel        | $0 (free tier)   |
+| Data transfer out              | ~$0              |
+| Public IPv4                    | $0               |
+| **Total**                      | **~$1.86/month** |
+
+Cost does not change after AWS free tier expires -- none of our costs depend on it.

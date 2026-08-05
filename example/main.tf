@@ -1,52 +1,16 @@
-provider "aws" {
-  region = "eu-west-1"
-}
-
-terraform {
-  required_version = ">= 0.13.1"
-
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = ">= 3.56.0"
-    }
-    local = {
-      source  = "hashicorp/local"
-      version = ">= 1.4"
-    }
-  }
-}
-
-data "local_file" "this" {
-  filename = "${path.module}/env.enc"
-}
-
-module "vpc" {
-  source  = "terraform-aws-modules/vpc/aws"
-  version = "6.6.1"
-
-  name = "${var.environment}-vpc"
-  cidr = var.cidr[var.environment]
-
-  azs             = var.azs[var.environment]
-  public_subnets  = var.public_subnets[var.environment]
-  private_subnets = var.private_subnets[var.environment]
-
-  enable_nat_gateway     = true
-  single_nat_gateway     = true
-  one_nat_gateway_per_az = false
-
-  enable_dns_hostnames = true
-}
-
 module "bitwarden" {
-  source       = "../"
-  name         = "bitwarden"
-  domain       = "bitwarden.example.org"
-  environment  = var.environment
-  route53_zone = "example.org."
-  ssh_cidr     = ["212.178.73.60/32"]
-  env_file     = data.local_file.this.content
+  source = "../"
 
-  depends_on = [module.vpc]
+  domain                = var.domain
+  name                  = var.name
+  instance_types        = var.instance_types
+  tags                  = var.tags
+  cloudflare_account_id = var.cloudflare_account_id
+  cloudflare_zone_id    = var.cloudflare_zone_id
+  env_content           = var.env_content
+  ssh_public_key        = var.ssh_public_key
+  ssh_allowed_ips       = var.ssh_allowed_ips
+  use_existing_vpc      = var.use_existing_vpc
+  existing_vpc_id       = var.existing_vpc_id
+  existing_subnet_ids   = var.existing_subnet_ids
 }

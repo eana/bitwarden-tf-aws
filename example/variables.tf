@@ -1,41 +1,80 @@
-variable "environment" {
-  default     = "prod"
-  description = "The environment to deploy the app in."
+variable "aws_region" {
+  description = "AWS region"
+  type        = string
+  default     = "eu-north-1"
+}
+
+variable "cloudflare_api_token" {
+  description = "Cloudflare API token"
+  type        = string
+  sensitive   = true
+}
+
+variable "domain" {
+  description = "Domain for vaultwarden and Cloudflare DNS"
   type        = string
 }
 
-variable "cidr" {
-  default = {
-    "prod" = "10.100.0.0/16"
-    "test" = "10.101.0.0/16"
-  }
-  description = "The CIDR block for the VPC."
+variable "name" {
+  description = "Resource name prefix"
+  type        = string
+  default     = "bitwarden"
+}
+
+variable "instance_types" {
+  description = "EC2 spot instance types"
+  type        = list(string)
+  default     = ["t4g.nano", "t4g.micro"]
+}
+
+variable "tags" {
+  description = "Resource tags"
   type        = map(string)
+  default     = {}
 }
 
-variable "azs" {
-  default = {
-    "prod" = ["eu-west-1a", "eu-west-1b", "eu-west-1c"]
-    "test" = ["eu-west-1a", "eu-west-1b", "eu-west-1c"]
-  }
-  description = "List of availability zones/"
-  type        = map(list(string))
+variable "cloudflare_account_id" {
+  description = "Cloudflare account ID"
+  type        = string
+  sensitive   = true
 }
 
-variable "public_subnets" {
-  default = {
-    "prod" = ["10.100.0.0/20", "10.100.16.0/20", "10.100.32.0/20"]
-    "test" = ["10.101.0.0/20", "10.101.16.0/20", "10.101.32.0/20"]
-  }
-  description = "List of cidr_blocks of public subnets."
-  type        = map(list(string))
+variable "cloudflare_zone_id" {
+  description = "Cloudflare zone ID for the domain"
+  type        = string
+  sensitive   = true
 }
 
-variable "private_subnets" {
-  default = {
-    "prod" = ["10.100.96.0/20", "10.100.112.0/20", "10.100.128.0/20"]
-    "test" = ["10.101.96.0/20", "10.101.112.0/20", "10.101.128.0/20"]
-  }
-  description = "List of cidr_blocks of private subnets."
-  type        = map(list(string))
+variable "env_content" {
+  description = "Runtime .env file content -- stored in SSM and fetched by instance at boot"
+  type        = string
+  sensitive   = true
+}
+
+variable "ssh_public_key" {
+  description = "SSH public key content for EC2 instance access"
+  type        = string
+}
+
+variable "ssh_allowed_ips" {
+  description = "IP ranges (v4 or v6) allowed to SSH"
+  type        = list(string)
+}
+
+variable "use_existing_vpc" {
+  description = "Use existing VPC instead of creating one"
+  type        = bool
+  default     = false
+}
+
+variable "existing_vpc_id" {
+  description = "VPC ID when use_existing_vpc = true"
+  type        = string
+  default     = ""
+}
+
+variable "existing_subnet_ids" {
+  description = "Subnet IDs when use_existing_vpc = true"
+  type        = list(string)
+  default     = []
 }
