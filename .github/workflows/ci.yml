@@ -1,9 +1,16 @@
 name: CI
 on:
   push:
+    branches: [master]
   pull_request:
     branches: [master]
   workflow_dispatch:
+env:
+  NIX_VERSION: "2.33.0"
+permissions: read-all
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
 jobs:
   changes:
     name: Changes
@@ -11,8 +18,9 @@ jobs:
     outputs:
       module: ${{ steps.changes.outputs.module }}
       example: ${{ steps.changes.outputs.example }}
+      flake: ${{ steps.changes.outputs.flake }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
       - name: Path filters
         uses: dorny/paths-filter@7b450fff21473bca461d4b92ce414b9d0420d706 # v4
         id: changes
@@ -27,19 +35,22 @@ jobs:
             example:
               - 'example/**'
               - '**/*.tfvars'
+            flake:
+              - 'flake.nix'
+              - 'flake.lock'
+              - '**/*.nix'
   pre-commit:
     name: Pre-commit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
       - name: Install Nix
         uses: cachix/install-nix-action@630ae543ea3a38a9a4166f03376c02c50f408342 # v31
         with:
-          install_url: https://releases.nixos.org/nix/nix-2.33.0/install
+          install_url: https://releases.nixos.org/nix/nix-${{ env.NIX_VERSION }}/install
       - name: Cache Cachix
         uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
         with:
-          useDaemon: true
           name: eana
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
       - name: Run pre-commit Checks
@@ -47,17 +58,17 @@ jobs:
   flake-check:
     name: Flake check
     runs-on: ubuntu-latest
-    needs: [pre-commit]
+    needs: [pre-commit, changes]
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.flake == 'true'
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
       - name: Install Nix
         uses: cachix/install-nix-action@630ae543ea3a38a9a4166f03376c02c50f408342 # v31
         with:
-          install_url: https://releases.nixos.org/nix/nix-2.33.0/install
+          install_url: https://releases.nixos.org/nix/nix-${{ env.NIX_VERSION }}/install
       - name: Cache Cachix
         uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
         with:
-          useDaemon: true
           name: eana
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
       - name: Run flake check
@@ -68,15 +79,14 @@ jobs:
     needs: [pre-commit, changes]
     if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.module == 'true'
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
       - name: Install Nix
         uses: cachix/install-nix-action@630ae543ea3a38a9a4166f03376c02c50f408342 # v31
         with:
-          install_url: https://releases.nixos.org/nix/nix-2.33.0/install
+          install_url: https://releases.nixos.org/nix/nix-${{ env.NIX_VERSION }}/install
       - name: Cache Cachix
         uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
         with:
-          useDaemon: true
           name: eana
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
       - name: Init
@@ -89,18 +99,17 @@ jobs:
     needs: [pre-commit, changes]
     if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.module == 'true' || needs.changes.outputs.example == 'true'
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
       - name: Install Nix
         uses: cachix/install-nix-action@630ae543ea3a38a9a4166f03376c02c50f408342 # v31
         with:
-          install_url: https://releases.nixos.org/nix/nix-2.33.0/install
+          install_url: https://releases.nixos.org/nix/nix-${{ env.NIX_VERSION }}/install
       - name: Cache Cachix
         uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
         with:
-          useDaemon: true
           name: eana
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
       - name: Init
-        run: cd example && nix develop -c tofu init -backend=false
+        run: nix develop -c sh -c 'cd example && tofu init -backend=false'
       - name: Validate
-        run: cd example && nix develop -c tofu validate
+        run: nix develop -c sh -c 'cd example && tofu validate'
