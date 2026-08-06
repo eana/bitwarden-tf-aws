@@ -36,6 +36,7 @@
       groupName: "GitHub Actions",
       groupSlug: "github-actions",
       matchManagers: ["github-actions"],
+      matchUpdateTypes: ["minor", "patch", "digest"],
       automerge: true,
     },
   ],
