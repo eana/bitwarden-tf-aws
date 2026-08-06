@@ -1,7 +1,12 @@
 { pkgs }:
 {
   settings.hooks = {
-    check-json.enable = true;
+    prettier = {
+      enable = true;
+      files = "\\.json5?$";
+      settings.write = false;
+      settings.list-different = true;
+    };
     check-yaml.enable = true;
     end-of-file-fixer.enable = true;
     check-merge-conflict = {

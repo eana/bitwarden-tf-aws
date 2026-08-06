@@ -17,7 +17,7 @@
       customType: "regex",
       managerFilePatterns: ["/(^|/)user-data.sh$/"],
       matchStrings: [
-        "#\\s*renovate:\\s*datasource=(?<datasource>.*?) depName=(?<depName>.*?)( versioning=(?<versioning>.*?))?\\sexport ENV_.*?_VERSION=\"?(?<currentValue>.*?)\"?\\s",
+        '#\\s*renovate:\\s*datasource=(?<datasource>.*?) depName=(?<depName>.*?)( versioning=(?<versioning>.*?))?\\sexport ENV_.*?_VERSION="?(?<currentValue>.*?)"?\\s',
       ],
       versioningTemplate: "{{#if versioning}}{{versioning}}{{else}}semver{{/if}}",
     },
