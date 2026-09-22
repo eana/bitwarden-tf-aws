@@ -27,7 +27,7 @@ jobs:
           name: eana
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
       - name: Run pre-commit Checks
-        run: nix develop -c pre-commit run --all-files --show-diff-on-failure
+        run: nix develop -c prek run --all-files --show-diff-on-failure
   flake-check:
     name: Flake check
     runs-on: ubuntu-latest

@@ -42,7 +42,7 @@
           packages = {
             pre-commit = config.pre-commit.settings.package;
             pre-commit-install = pkgs.writeShellScriptBin "pre-commit-install" ''
-              ${pkgs.pre-commit}/bin/pre-commit install
+              ${pkgs.prek}/bin/prek install -f --hook-type pre-commit
             '';
             tofu = pkgs.writeShellApplication {
               name = "tofu";
@@ -91,6 +91,12 @@
 
           devshells.default = {
             commands = [
+              {
+                package = pkgs.writeShellScriptBin "pre-commit" ''
+                  exec ${pkgs.prek}/bin/prek "$@"
+                '';
+                help = "Drop-in pre-commit alias that runs prek";
+              }
               {
                 name = "terraform";
                 help = "OpenTofu with git-backed state (set STATE_REPO_URL for remote)";
